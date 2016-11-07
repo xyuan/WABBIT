@@ -34,7 +34,7 @@ subroutine initial_block_distribution(distribution)
             do light_id = 1, blocks_params%number_max_blocks
 
                 ! block is active
-                if ( blocks(light_id).active == .true. ) then
+                if ( blocks(light_id)%active .eqv. .true. ) then
 
                     ! find free heavy id
                     if ( rank == proc_id ) then
@@ -47,15 +47,15 @@ subroutine initial_block_distribution(distribution)
                     call MPI_Bcast(heavy_id, 1, MPI_INTEGER4, proc_id, MPI_COMM_WORLD, ierr)
 
                     ! save heavy-id and proc-id in light data
-                    blocks(light_id).proc_data_id   = heavy_id
-                    blocks(light_id).proc_rank      = proc_id
+                    blocks(light_id)%proc_data_id   = heavy_id
+                    blocks(light_id)%proc_rank      = proc_id
                     ! increase proc-id
                     proc_id                         = proc_id + 1
 
                 else
                     ! block is not active, so reset id's to heavy data
-                    blocks(light_id).proc_data_id   = -1
-                    blocks(light_id).proc_rank      = -1
+                    blocks(light_id)%proc_data_id   = -1
+                    blocks(light_id)%proc_rank      = -1
 
                 end if
                 ! reset proc counter

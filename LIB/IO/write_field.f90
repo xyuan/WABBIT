@@ -45,38 +45,25 @@ subroutine write_field(iteration, time, dF, fname)
     allocate( data_(1:Bs, 1:Bs), stat=allocate_error )
     allocate( coord_(1:Bs), stat=allocate_error )
 
+    write( fname,'("data_",i8.8,".h5")') nint(time * 1.0e4_rk)
+
     ! create the filename
     if ( (rank == 0) .and. (dF == 1) ) then
-        write( fname,'("data_",i8.8,".h5")') nint(time * 1.0e4_rk)
-
         write(*,'(80("*"))')
         write(*,'("Writing data... time=",f15.8," fname=",A)') time, trim(adjustl(fname))
         write(*,'(80("*"))')
-
         ! overwrite the file, if it already exists
         call init_empty_file( fname )
     end if
 
     ! save block data
     do k = 1, blocks_params%number_max_blocks
-
-        if (blocks(k)%active) then
-
-            if (rank == 0) then
-
+        if (blocks(k)%active .and. blocks(k)%proc_rank == rank ) then
                 ! the name of the block within th hdf5 file
                 write(dsetname,'("block_",i8.8, "_field_",i2.2)') k, dF
 
-                ! heavy data exchange
-                ! if data on proc 0: write data
-                ! else: receive data from proc with block data
-                if ( blocks(k)%proc_rank == 0 ) then
-                    heavy_id = blocks(k)%proc_data_id
-                    call write_field_hdf5( fname, dsetname, blocks_data(heavy_id)%data_fields(dF)%data_(g+1:Bs+g,g+1:Bs+g), .false.)
-                else
-                    call MPI_Recv(data_, Bs*Bs, MPI_REAL8, blocks(k)%proc_rank, tag, MPI_COMM_WORLD, status, ierr)
-                    call write_field_hdf5( fname, dsetname, data_, .false.)
-                end if
+                heavy_id = blocks(k)%proc_data_id
+                call write_field_hdf5( fname, dsetname, blocks_data(heavy_id)%data_fields(dF)%data_(g+1:Bs+g,g+1:Bs+g), .false.)
 
                 ! save data field number
                 call write_attribute( fname, dsetname, "data field", (/dF/))
@@ -89,16 +76,8 @@ subroutine write_field(iteration, time, dF, fname)
                 ! heavy data exchange
                 ! if data on proc 0: write data
                 ! else: receive data from proc with block data
-                if ( blocks(k)%proc_rank == 0 ) then
-                    heavy_id = blocks(k)%proc_data_id
-                    call write_attribute( fname, dsetname, "coord_x", blocks_data(heavy_id)%coord_x)
-                    call write_attribute( fname, dsetname, "coord_y", blocks_data(heavy_id)%coord_y)
-                else
-                    call MPI_Recv(coord_, Bs, MPI_REAL8, blocks(k)%proc_rank, tag, MPI_COMM_WORLD, status, ierr)
-                    call write_attribute( fname, dsetname, "coord_x", coord_)
-                    call MPI_Recv(coord_, Bs, MPI_REAL8, blocks(k)%proc_rank, tag, MPI_COMM_WORLD, status, ierr)
-                    call write_attribute( fname, dsetname, "coord_y", coord_)
-                end if
+                call write_attribute( fname, dsetname, "coord_x", blocks_data(heavy_id)%coord_x)
+                call write_attribute( fname, dsetname, "coord_y", blocks_data(heavy_id)%coord_y)
 
                 call write_attribute( fname, dsetname, "neighbor-id1", (/blocks(k)%neighbor_id(1)/) )
                 call write_attribute( fname, dsetname, "neighbor-treecode1", blocks(k)%neighbor_treecode(1,:))
@@ -148,44 +127,15 @@ subroutine write_field(iteration, time, dF, fname)
                 call write_attribute( fname, dsetname, "neighbor-id16", (/blocks(k)%neighbor_id(16)/) )
                 call write_attribute( fname, dsetname, "neighbor-treecode16", blocks(k)%neighbor_treecode(16,:))
 
-                ! heavy data exchange
-                ! if data on proc 0: write data
-                ! else: receive data from proc with block data
-                if ( blocks(k)%proc_rank == 0 ) then
-                    heavy_id = blocks(k)%proc_data_id
-                    call write_attribute( fname, dsetname, "detail", (/blocks_data(heavy_id)%data_fields(dF)%detail/))
-                else
-                    call MPI_Recv(detail_, 1, MPI_REAL8, blocks(k)%proc_rank, tag, MPI_COMM_WORLD, status, ierr)
-                    call write_attribute( fname, dsetname, "detail", (/blocks_data(heavy_id)%data_fields(dF)%detail/))
-                end if
-
-            else
-                ! send data to proc 0
-                if ( blocks(k)%proc_rank == rank ) then
-
-                    ! local (heavy id)
-                    heavy_id = blocks(k)%proc_data_id
-                    ! send data
-                    data_ = blocks_data(heavy_id)%data_fields(dF)%data_(g+1:Bs+g,g+1:Bs+g)
-                    call MPI_Send( data_, Bs*Bs, MPI_REAL8, 0, tag, MPI_COMM_WORLD, ierr)
-                    ! send coords
-                    coord_ = blocks_data(heavy_id)%coord_x
-                    call MPI_Send( coord_, Bs, MPI_REAL8, 0, tag, MPI_COMM_WORLD, ierr)
-                    coord_ = blocks_data(heavy_id)%coord_y
-                    call MPI_Send( coord_, Bs, MPI_REAL8, 0, tag, MPI_COMM_WORLD, ierr)
-                    ! send detail
-                    detail_ = blocks_data(heavy_id)%data_fields(dF)%detail
-                    call MPI_Send( detail_, 1, MPI_REAL8, 0, tag, MPI_COMM_WORLD, ierr)
-
-                end if
-
-            endif
+                call write_attribute( fname, dsetname, "detail", (/blocks_data(heavy_id)%data_fields(dF)%detail/))
 
         end if
 
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)
     end do
 
-    call MPI_Barrier(MPI_COMM_WORLD, ierr)
+    stop
+
 
     ! deallocate data fields
     deallocate( data_, stat=allocate_error )

@@ -33,7 +33,7 @@ subroutine create_com_list(com_list, com_list_i, com_list_N)
     ! loop over all blocks to create com-list
     do light_id = 1, N
 
-        if ( blocks(light_id)%active == .true. ) then
+        if ( blocks(light_id)%active .eqv. .true. ) then
 
             if ( blocks_params%size_domain == blocks_params%size_block ) then
                 ! write com_list if only one block

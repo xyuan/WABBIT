@@ -34,7 +34,7 @@ subroutine update_neighbors()
     ! loop over all blocks
     do light_id = 1, N
 
-        if ( blocks(light_id)%active == .true. ) then
+        if ( blocks(light_id)%active .eqv. .true. ) then
 
             ! reset neighbor lists
             blocks(light_id)%neighbor_treecode(:,:) = -1

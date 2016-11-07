@@ -14,6 +14,7 @@
 module hdf5_wrapper
 
   use hdf5
+  use mpi
   implicit none
 
   ! Precision of doubles
@@ -257,6 +258,8 @@ subroutine write_field_hdf5( filename, dsetname, field, overwrite)
   call h5pcreate_f(H5P_FILE_ACCESS_F, plist_id, error)
   ! setup serial driver (no MPI)
   call H5Pset_fapl_stdio_f(plist_id, error)
+
+  ! call h5pset_fapl_mpio_f(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL, error)
 
 
   !-----------------------------------------------------------------------------

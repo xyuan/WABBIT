@@ -144,7 +144,7 @@ subroutine sort_com_list(com_list, com_plan, n_proc, n_com, com_list_N)
         end if
 
         ! reset proc_status, if necessary
-        if ( com_allowed(proc_status, n_proc) == .false. ) then
+        if ( com_allowed(proc_status, n_proc) .eqv. .false. ) then
             proc_status = .true.
         end if
 

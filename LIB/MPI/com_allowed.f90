@@ -26,15 +26,15 @@ logical function com_allowed(array, N)
 
     do i = 1, N
 
-        if ( one_com_allowed == .true. ) then
-            if ( array(i) == .true. ) then
+        if ( one_com_allowed .eqv. .true. ) then
+            if ( array(i) .eqv. .true. ) then
                 ! second allowed communication detected
                 com_allowed = .true.
             end if
         end if
 
-        if ( one_com_allowed == .false. ) then
-            if ( array(i) == .true. ) then
+        if ( one_com_allowed .eqv. .false. ) then
+            if ( array(i) .eqv. .true. ) then
                 ! first allowed communication detected
                 one_com_allowed = .true.
             end if
