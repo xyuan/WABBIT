@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: treecode_size.f90
-! version: 0.4
-! author: msr
+!> \name treecode_size.f90
+!> \version 0.4
+!> \author msr
 !
 ! calculate treecode size, count elements which are not -1
 !

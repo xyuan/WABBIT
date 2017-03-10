@@ -1,12 +1,13 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: update_neighbors_2D.f90
-! version: 0.4
-! author: msr
+!> \name update_neighbors_2D.f90
+!> \version 0.4
+!> \author msr
 !
 ! update neighbor relations with light data, store neighbors in neighbor list (heavy data)
-! 2D version
+! 2D \version
 !
 ! input:    - light data array
 !           - params struct

@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: treecode_to_3D_z_curve.f90
-! version: 0.5
-! author: msr
+!> \name treecode_to_3D_z_curve.f90
+!> \version 0.5
+!> \author msr
 !
 ! convert given treecode to position in sfc
 !

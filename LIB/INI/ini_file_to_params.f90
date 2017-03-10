@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: ini_file_to_params.f90
-! version: 0.5
-! author: msr
+!> \name ini_file_to_params.f90
+!> \version 0.5
+!> \author msr
 !
 ! distribute blocks at start => create light data array
 !

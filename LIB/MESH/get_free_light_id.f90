@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: get_free_light_id.f90
-! version: 0.4
-! author: msr, engels
+!> \name get_free_light_id.f90
+!> \version 0.4
+!> \author msr, engels
 !
 ! return light free block id
 !

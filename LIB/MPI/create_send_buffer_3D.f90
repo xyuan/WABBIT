@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: create_send_buffer_3D.f90
-! version: 0.5
-! author: msr
+!> \name create_send_buffer_3D.f90
+!> \version 0.5
+!> \author msr
 !
 ! write send buffer with given com list
 !

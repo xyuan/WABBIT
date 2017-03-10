@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: module_convection_diffusion.f90
-! version: 0.4
-! author: msr
+!> \name module_convection_diffusion.f90
+!> \version 0.4
+!> \author msr
 !
 ! module for 2D/3D convection diffusion physics
 !

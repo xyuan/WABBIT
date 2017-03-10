@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: does_block_exist.f90
-! version: 0.4
-! author: msr, engels
+!> \name does_block_exist.f90
+!> \version 0.4
+!> \author msr, engels
 !
 ! return true and light id, if block exist
 !

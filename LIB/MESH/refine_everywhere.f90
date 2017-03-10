@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: refine_everywhere.f90
-! version: 0.4
-! author: msr, engels
+!> \name refine_everywhere.f90
+!> \version 0.4
+!> \author msr, engels
 !
 ! refine every block to create the wavelet safety zone
 !

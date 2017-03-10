@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: RHS_3D_navier_stokes.f90
-! version: 0.5
-! author: msr
+!> \name RHS_3D_navier_stokes.f90
+!> \version 0.5
+!> \author msr
 !
 ! RHS for 3D navier stokes equation
 !

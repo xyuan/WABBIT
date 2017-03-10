@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: treecode_to_hilbercode.f90
-! version: 0.4
-! author: msr
+!> \name treecode_to_hilbercode.f90
+!> \version 0.4
+!> \author msr
 !
 ! convert given treecode to code in hilbert curve
 !

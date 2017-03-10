@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: isend_irecv_data.f90
-! version: 0.4
-! author: msr
+!> \name isend_irecv_data.f90
+!> \version 0.4
+!> \author msr
 !
 ! transfer data with MPI non blocking subroutines
 !

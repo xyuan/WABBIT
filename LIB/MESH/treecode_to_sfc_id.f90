@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: treecode_to_sfc_id.f90
-! version: 0.4
-! author: msr
+!> \name treecode_to_sfc_id.f90
+!> \version 0.4
+!> \author msr
 !
 ! convert given treecode to position in sfc
 !

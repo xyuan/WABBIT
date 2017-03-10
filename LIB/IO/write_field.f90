@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: write_field.f90
-! version: 0.5
-! author: engels, msr
+!> \name write_field.f90
+!> \version 0.5
+!> \author engels, msr
 !
 ! write data of a single datafield dF at timestep iteration and time t
 !

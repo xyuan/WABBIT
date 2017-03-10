@@ -1,19 +1,20 @@
-! ********************************************************************************************
+!> \file
+!********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: adapt_mesh.f90
-! version: 0.4
-! author: msr
+!> \name     adapt_mesh.f90
+!! \version  0.4
+!! \author   msr
 !
-! mesh adapting main function
+!> \brief mesh adapting main function
 !
-! input:    - params, light and heavy data
-! output:   - light and heavy data arrays
-!
-! = log ======================================================================================
-!
-! 10/11/16 - switch to v0.4
-! ********************************************************************************************
+!> \details input:    - params, light and heavy data
+!> \details output:   - light and heavy data arrays
+!!
+!> = log ======================================================================================
+!!
+!! 10/11/16 - switch to v0.4
+!********************************************************************************************
 
 subroutine adapt_mesh( params, lgt_block, hvy_block, hvy_neighbor, lgt_active, lgt_n, hvy_active, hvy_n )
 
@@ -25,22 +26,22 @@ subroutine adapt_mesh( params, lgt_block, hvy_block, hvy_neighbor, lgt_active, l
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(in)      :: params
-    ! light data array
+    !> light data array
     integer(kind=ik), intent(inout)     :: lgt_block(:, :)
-    ! heavy data array
+    !> heavy data array
     real(kind=rk), intent(inout)        :: hvy_block(:, :, :, :, :)
-    ! heavy data array - neifghbor data
+    !> heavy data array - neighbor data
     integer(kind=ik), intent(inout)     :: hvy_neighbor(:,:)
 
-    ! list of active blocks (light data)
+    !> list of active blocks (light data)
     integer(kind=ik), intent(inout)     :: lgt_active(:)
-    ! number of active blocks (light data)
+    !> number of active blocks (light data)
     integer(kind=ik), intent(inout)     :: lgt_n
-    ! list of active blocks (heavy data)
+    !> list of active blocks (heavy data)
     integer(kind=ik), intent(inout)     :: hvy_active(:)
-    ! number of active blocks (heavy data)
+    !> number of active blocks (heavy data)
     integer(kind=ik), intent(inout)     :: hvy_n
 
     ! loop variables
@@ -54,7 +55,6 @@ subroutine adapt_mesh( params, lgt_block, hvy_block, hvy_neighbor, lgt_active, l
 
 !---------------------------------------------------------------------------------------------
 ! main body
-
     ! maximal number of loops to coarsen the mesh == one block go down from max_treelevel to min_treelevel
     do k = 1, (params%max_treelevel - params%min_treelevel)
 
@@ -118,5 +118,5 @@ subroutine adapt_mesh( params, lgt_block, hvy_block, hvy_neighbor, lgt_active, l
         ! 2D:
         call update_neighbors_2D( params, lgt_block, hvy_neighbor, lgt_active, lgt_n, hvy_active, hvy_n )
     end if
-
 end subroutine adapt_mesh
+

@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: inicond_shear_layer.f90
-! version: 0.5
-! author: msr
+!> \name inicond_shear_layer.f90
+!> \version 0.5
+!> \author msr
 !
 ! initialize shear layer setup
 !

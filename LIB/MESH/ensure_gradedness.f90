@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: ensure_gradedness.f90
-! version: 0.5
-! author: msr, engels
+!> \name ensure_gradedness.f90
+!> \version 0.5
+!> \author msr, engels
 !
 ! check the gradedness after new refinement status
 !

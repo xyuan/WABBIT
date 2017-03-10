@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: inicond_vorticity_filaments.f90
-! version: 0.4
-! author: msr
+!> \name inicond_vorticity_filaments.f90
+!> \version 0.4
+!> \author msr
 !
 ! initialize the vorticity_filaments testcase
 ! load velocity fields from file

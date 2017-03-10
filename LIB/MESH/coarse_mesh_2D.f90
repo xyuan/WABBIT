@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: coarse_mesh_2D.f90
-! version: 0.4
-! author: msr
+!> \name coarse_mesh_2D.f90
+!> \version 0.4
+!> \author msr
 !
 ! coarse the mesh:
 ! every proc work on light data array,

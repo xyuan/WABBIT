@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: create_hvy_active_list.f90
-! version: 0.4
-! author: msr
+!> \name create_hvy_active_list.f90
+!> \version 0.4 
+!> \author msr
 !
 ! create a list of all active blocks (heavy data)
 ! dim 1: heavy data id

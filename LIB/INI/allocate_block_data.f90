@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: allocate_block_data.f90
-! version: 0.5
-! author: msr, engels
+!> \name allocate_block_data.f90
+!> \version 0.5
+!> \author msr, engels
 !
 ! allocate and reset heavy block data
 !

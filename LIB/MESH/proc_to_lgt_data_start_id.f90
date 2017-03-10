@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: proc_to_lgt_data_start_id.f90
-! version: 0.4
-! author: msr
+!> \name proc_to_lgt_data_start_id.f90
+!> \version 0.4
+!> \author msr
 !
 ! return start index on light data corresponding to proc rank
 !

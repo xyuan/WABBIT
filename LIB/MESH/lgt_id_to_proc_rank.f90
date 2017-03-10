@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: lgt_id_to_proc_rank.f90
-! version: 0.4
-! author: msr
+!> \name lgt_id_to_proc_rank.f90
+!> \version 0.4
+!> \author msr
 !
 ! return proc rank corresponding to given light id
 !

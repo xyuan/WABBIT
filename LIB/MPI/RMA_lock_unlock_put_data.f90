@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: RMA_lock_unlock_put_data.f90
-! version: 0.4
-! author: msr
+!> \name RMA_lock_unlock_put_data.f90
+!> \version 0.4
+!> \author msr
 !
 ! put data to RMA window on other proc
 ! use lock/unlock synchronization

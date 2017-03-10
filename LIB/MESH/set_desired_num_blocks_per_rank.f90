@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: set_desired_num_blocks_per_rank.f90
-! version: 0.4
-! author: engels, msr
+!> \name set_desired_num_blocks_per_rank.f90
+!> \version 0.4
+!> \author engels, msr
 !
 ! create block distribution lists
 !

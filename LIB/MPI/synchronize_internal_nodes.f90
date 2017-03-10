@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: synchronize_internal_nodes.f90
-! version: 0.5
-! author: msr
+!> \name synchronize_internal_nodes.f90
+!> \version 0.5
+!> \author msr
 !
 ! synchronize internal ghosts nodes, create com matrix and com list for external communication
 !

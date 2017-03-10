@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: module_interpolation.f90
-! version: 0.5
-! author: msr, engels
+!> \name module_interpolation.f90
+!> \version 0.5
+!> \author msr, engels
 !
 ! refinement and coarsening subroutines
 !

@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: write_receive_buffer_2D.f90
-! version: 0.4
-! author: msr
+!> \name write_receive_buffer_2D.f90
+!> \version 0.4
+!> \author msr
 !
 ! write received buffer to heavy data with integer and real buffer
 !

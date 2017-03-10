@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: write_future_mesh_lvl.f90
-! version: 0.4
-! author: msr
+!> \name write_future_mesh_lvl.f90
+!> \version 0.4
+!> \author msr
 !
 ! debug planned mesh changes
 ! write file with future mesh level for all blocks

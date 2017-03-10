@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: module_navier_stokes.f90
-! version: 0.4
-! author: msr
+!> \name module_navier_stokes.f90
+!> \version 0.4
+!> \author msr
 !
 ! module for 2D/3D navier stokes physics
 !

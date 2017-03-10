@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: refine_mesh_3D.f90
-! version: 0.5
-! author: msr
+!> \name refine_mesh_3D.f90
+!> \version 0.5
+!> \author msr
 !
 ! refine the mesh:
 ! every proc work on his own heavy data and change the corresponding light data

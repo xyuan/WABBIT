@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: check_ghost_nodes.f90
-! version: 0.4
-! author: msr
+!> \name check_ghost_nodes.f90
+!> \version 0.4
+!> \author msr
 !
 ! check if ghost nodes synchronization fails
 ! first check: if synchroniozation fails, ghost nodes can have values of 9e9, so check if value larger than given value

@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: adjacent_block_3D.f90
-! version: 0.5
-! author: msr
+!> \name adjacent_block_3D.f90
+!> \version 0.5
+!> \author msr
 !
 ! give treecode for adjacent block in 3D
 !

@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: inicond_zeros.f90
-! version: 0.5
-! author: msr
+!> \name inicond_zeros.f90
+!> \version 0.5
+!> \author msr
 !
 ! initialize zero for all fields
 ! work for 2D and 3D data

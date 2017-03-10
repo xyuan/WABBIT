@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: new_block_heavy.f90
-! version: 0.5
-! author: msr
+!> \name new_block_heavy.f90
+!> \version 0.5
+!> \author msr
 !
 ! write heavy block data in first datafield, reset all other datafields
 !

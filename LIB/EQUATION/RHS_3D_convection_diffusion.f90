@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: RHS_3D_convection_diffusion.f90
-! version: 0.5
-! author: msr, engels
+!> \name RHS_3D_convection_diffusion.f90
+!> \version 0.5
+!> \author msr, engels
 !
 ! rhs for 3D convection diffusion equation
 !

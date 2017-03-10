@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: copy_ghost_nodes_2D.f90
-! version: 0.4
-! author: msr
+!> \name copy_ghost_nodes_2D.f90
+!> \version 0.4
+!> \author msr
 !
 ! copy ghost points from sender block to receiver block
 ! note: works only for block on same process

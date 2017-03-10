@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: write_com_list.f90
-! version: 0.4
-! author: msr
+!> \name write_com_list.f90
+!> \version 0.4
+!> \author msr
 !
 ! write communication list to file
 ! note: existing file will be overridden

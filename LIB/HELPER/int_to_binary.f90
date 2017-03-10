@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: int_to_binary.f90
-! version: 0.4
-! author: msr
+!> \name int_to_binary.f90
+!> \version 0.4
+!> \author msr
 !
 ! convert a integer i to binary b
 ! binary return as vector with length N

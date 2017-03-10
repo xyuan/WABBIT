@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: allocate_work_data.f90
-! version: 0.5
-! author: msr
+!> \name allocate_work_data.f90
+!> \version 0.5
+!> \author msr
 !
 ! allocate and reset heavy work data
 !

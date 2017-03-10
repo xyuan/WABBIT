@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: synchronize_ghosts.f90
-! version: 0.5
-! author: msr
+!> \name synchronize_ghosts.f90
+!> \version 0.5
+!> \author msr
 !
 ! synchronize ghosts nodes
 !

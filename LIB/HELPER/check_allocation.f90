@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: check_allocation.f90
-! version: 0.5
-! author: msr
+!> \name check_allocation.f90
+!> \version 0.5
+!> \author msr
 !
 ! convert a integer i to binary b
 ! binary return as vector with length N

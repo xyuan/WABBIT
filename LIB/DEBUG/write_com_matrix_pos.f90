@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: write_com_matrix_pos.f90
-! version: 0.4
-! author: msr
+!> \name write_com_matrix_pos.f90
+!> \version 0.4
+!> \author msr
 !
 ! write position communication matrix to file
 !

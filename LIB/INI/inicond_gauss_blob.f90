@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: inicond_gauss_blob.f90
-! version: 0.5
-! author: engels, msr
+!> \name inicond_gauss_blob.f90
+!> \version 0.5
+!> \author engels, msr
 !
 ! initialize gauss pulse for 2D case
 ! note: field phi is 3D, but third dimension is not used

@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: respect_min_max_treelevel.f90
-! version: 0.4
-! author: msr
+!> \name respect_min_max_treelevel.f90
+!> \version 0.4
+!> \author msr
 !
 ! unset refinement status in respect of min/max treelevel
 !

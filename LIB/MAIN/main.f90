@@ -1,37 +1,38 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: main.f90
-! version: 0.5
-! author: msr
+!> \name    main.f90
+!> \version 0.5
+!> \author  msr
 !
-! main program, init all data, start time loop, output on screen during program run
-!
-! = log ======================================================================================
-!
-! 04/11/16 - switch to v0.4
-! 23/11/16 - use computing time array for simple performance tests
-! 07/12/16 - now uses heavy work data array
-! 25/01/17 - switch to 3D, v0.5
+!> main program, init all data, start time loop, output on screen during program run \n
+!!
+!> = log ======================================================================================
+!! \n 
+!> 04/11/16 - switch to v0.4 \n
+!> 23/11/16 - use computing time array for simple performance tests \n
+!> 07/12/16 - now uses heavy work data array \n
+!> 25/01/17 - switch to 3D, v0.5 \n
 ! ********************************************************************************************
 
 program main
-
+  
 !---------------------------------------------------------------------------------------------
 ! modules
 
     use mpi
-    ! global parameters
+    !> global parameters
     use module_params
-    ! debug module
+    !> debug module
     use module_debug
-    ! init data module
+    !> init data module
     use module_init
-    ! mesh manipulation subroutines
+    !> mesh manipulation subroutines
     use module_mesh
-    ! IO module
+    !> IO module
     use module_IO
-    ! time step module
+    !> time step module
     use module_time_step
 
 !---------------------------------------------------------------------------------------------
@@ -41,61 +42,61 @@ program main
 
     ! MPI error variable
     integer(kind=ik)                    :: ierr
-    ! process rank
+    !> process rank
     integer(kind=ik)                    :: rank
-    ! number of processes
+    !> number of processes
     integer(kind=ik)                    :: number_procs
 
-    ! cpu time variables for running time calculation
+    !> cpu time variables for running time calculation
     real(kind=rk)                       :: t0, t1
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params)                  :: params
 
-    ! light data array  -> line number = ( 1 + proc_rank ) * heavy_data_line_number
-    !                   -> column(1:max_treelevel): block treecode, treecode -1 => block is inactive
-    !                   -> column(max_treelevel+1): treecode length = mesh level
-    !                   -> column(max_treelevel+2):   refinement status (-1..coarsen / 0...no change / +1...refine)
+    !> light data array  -> line number = ( 1 + proc_rank ) * heavy_data_line_number
+    !!                   -> column(1:max_treelevel): block treecode, treecode -1 => block is inactive
+    !!                   -> column(max_treelevel+1): treecode length = mesh level
+    !!                   -> column(max_treelevel+2):   refinement status (-1..coarsen / 0...no change / +1...refine)
     integer(kind=ik), allocatable       :: lgt_block(:, :)
 
-    !                   -> dim 1: x coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-    !                   -> dim 2: y coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-    !                   -> dim 3: z coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-    !                   -> dim 4: data type ( field_1, 2:number_data_fields+1)
-    ! heavy data array  -> dim 5: block id  ( 1:number_blocks )
-    !           field_1 (to save mixed data):   line 1: x coordinates
-    !                                           line 2: y coordinates
+    !>                   -> dim 1: x coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+    !!                   -> dim 2: y coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+    !!                   -> dim 3: z coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+    !!                   -> dim 4: data type ( field_1, 2:number_data_fields+1)
+    !! heavy data array  -> dim 5: block id  ( 1:number_blocks )
+    !!           field_1 (to save mixed data):   line 1: x coordinates
+    !!                                           line 2: y coordinates
     real(kind=rk), allocatable          :: hvy_block(:, :, :, :, :)
 
-    !                   -> dim 1: x coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-    !                   -> dim 2: y coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-    !                   -> dim 3: z coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-    !                   -> dim 4: data type ( old data, k1, k2, k3, k4 )
-    ! heavy work array  -> dim 5: block id  ( 1:number_blocks )
+    !>                   -> dim 1: x coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+    !!                   -> dim 2: y coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+    !!                   -> dim 3: z coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+    !!                   -> dim 4: data type ( old data, k1, k2, k3, k4 )
+    !! heavy work array  -> dim 5: block id  ( 1:number_blocks )
     real(kind=rk), allocatable          :: hvy_work(:, :, :, :, :)
 
-    ! neighbor array (heavy data) -> number_lines   = number_blocks (correspond to heavy data id)
-    !                             -> number_columns = 16 (...different neighbor relations:
-    ! '__N', '__E', '__S', '__W', '_NE', '_NW', '_SE', '_SW', 'NNE', 'NNW', 'SSE', 'SSW', 'ENE', 'ESE', 'WNW', 'WSW' )
-    !         saved data -> -1 ... no neighbor
-    !                    -> light data id in corresponding column
+    !> neighbor array (heavy data) -> number_lines   = number_blocks (correspond to heavy data id)
+    !!                             -> number_columns = 16 (...different neighbor relations:
+    !! '__N', '__E', '__S', '__W', '_NE', '_NW', '_SE', '_SW', 'NNE', 'NNW', 'SSE', 'SSW', 'ENE', 'ESE', 'WNW', 'WSW' )
+    !!         saved data -> -1 ... no neighbor
+    !!                    -> light data id in corresponding column
     integer(kind=ik), allocatable       :: hvy_neighbor(:,:)
 
-    ! list of active blocks (light data)
+    !> list of active blocks (light data)
     integer(kind=ik), allocatable       :: lgt_active(:)
-    ! number of active blocks (light data)
+    !> number of active blocks (light data)
     integer(kind=ik)                    :: lgt_n
 
-    ! list of active blocks (heavy data)
+    !> list of active blocks (heavy data)
     integer(kind=ik), allocatable       :: hvy_active(:)
-    ! number of active blocks (heavy data)
+    !> number of active blocks (heavy data)
     integer(kind=ik)                    :: hvy_n
 
-    ! time loop variables
+    !> time loop variables
     real(kind=rk)                       :: time, output_time
     integer(kind=ik)                    :: iteration
 
-    ! number of dimensions
+    !> number of dimensions
     character(len=80)                   :: dim_number
 
     ! loop variable

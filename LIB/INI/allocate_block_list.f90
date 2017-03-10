@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: allocate_block_list.f90
-! version: 0.4
-! author: msr
+!> \name allocate_block_list.f90
+!> \version 0.4
+!> \author msr
 !
 ! allocate and reset block list (global light data)
 !

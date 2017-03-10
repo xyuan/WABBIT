@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: inicond_richtmyer_meshkov.f90
-! version: 0.5
-! author: msr
+!> \name inicond_richtmyer_meshkov.f90
+!> \version 0.5
+!> \author msr
 !
 ! initialize richtmyer meshkov setup
 !

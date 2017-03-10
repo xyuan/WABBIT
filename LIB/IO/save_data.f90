@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: save_data.f90
-! version: 0.5
-! author: msr
+!> \name save_data.f90
+!> \version 0.5
+!> \author msr
 !
 ! save data main function, call write data routine
 !

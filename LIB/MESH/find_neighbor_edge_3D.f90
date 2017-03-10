@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: find_neighbor_edge_3D.f90
-! version: 0.5
-! author: msr
+!> \name find_neighbor_edge_3D.f90
+!> \version 0.5
+!> \author msr
 !
 ! find neighbor on block edge
 !

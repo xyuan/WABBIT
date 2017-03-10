@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: create_lgt_active_list.f90
-! version: 0.4
-! author: msr
+!> \name create_lgt_active_list.f90
+!> \version 0.4
+!> \author msr
 !
 ! create a list of all active blocks (light data)
 ! dim 1: light data id

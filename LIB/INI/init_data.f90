@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: init_data.f90
-! version: 0.5
-! author: msr
+!> \name init_data.f90
+!> \version 0.5
+!> \author msr
 !
 ! initialize all data: read params from ini file, allocate memory, initialize starting condition
 ! and decompose start matrix into block data

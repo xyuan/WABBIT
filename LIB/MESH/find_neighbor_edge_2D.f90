@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: find_neighbor_edge_2D.f90
-! version: 0.4
-! author: msr
+!> \name find_neighbor_edge_2D.f90
+!> \version 0.4
+!> \author msr
 !
 ! find neighbor on block edge
 ! valid cases for edge neighbors:

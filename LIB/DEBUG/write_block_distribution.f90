@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: write_block_distribution.f90
-! version: 0.4
-! author: msr
+!> \name write_block_distribution.f90
+!> \version 0.4
+!> \author msr
 !
 ! write current block distribution to file
 !

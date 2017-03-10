@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: compute_friends_table.f90
-! version: 0.4
-! author: engels, msr
+!> \name compute_friends_table.f90
+!> \version 0.4
+!> \author engels, msr
 !
 ! compute friends table. This is a mpisize x mpisize array of integers, and it counts
 ! how many neighbor relations the mpiranks have to each other mpirank. the matrix is

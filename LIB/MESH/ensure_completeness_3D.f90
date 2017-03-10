@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: ensure_completeness_3D.f90
-! version: 0.5
-! author: msr
+!> \name ensure_completeness_3D.f90
+!> \version 0.5
+!> \author msr
 !
 ! sets refinement status to -2 for all sister blocks, if coarsening is possible
 !

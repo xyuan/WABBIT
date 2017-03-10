@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: initial_block_distribution_2D.f90
-! version: 0.5
-! author: msr
+!> \name initial_block_distribution_2D.f90
+!> \version 0.5
+!> \author msr
 !
 ! distribute blocks at start => create light data array
 ! note: field phi is 3D, but third dimension is not used

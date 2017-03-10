@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: module_params.f90
-! version: 0.4
-! author: msr
+!> \name module_params.f90
+!> \version 0.4
+!> \author msr
 !
 ! params data structure, define all constant parameters for global use
 !

@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: check_lgt_block_synchronization.f90
-! version: 0.4
-! author: msr
+!> \name check_lgt_block_synchronization.f90
+!> \version 0.4
+!> \author msr
 !
 ! debug lgt_block data
 ! proc 0 gather all data and compare the data to his own light data

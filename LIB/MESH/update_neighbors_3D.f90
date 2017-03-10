@@ -1,9 +1,10 @@
+!> \file
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
-! name: update_neighbors_3D.f90
-! version: 0.5
-! author: msr
+!> \name update_neighbors_3D.f90
+!> \version 0.5
+!> \author msr
 !
 ! update neighbor relations with light data, store neighbors in neighbor list (heavy data)
 ! 3D case
