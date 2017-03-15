@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -6,15 +7,19 @@
 !> \version 0.4
 !> \author msr
 !
-! calculate treecode size, count elements which are not -1
+!> \brief calculate treecode size, count elements which are not -1
 !
-! input:    - treecode
-!           - length of treecode input vector
-! output:   - real treecode size (level of treecode)
-!
-! = log ======================================================================================
-!
-! 07/11/16 - switch to v0.4
+!> \details
+!! input:    
+!!           - treecode
+!!           - length of treecode input vector
+!!
+!! output:   
+!!           - real treecode size (level of treecode)
+!!
+!! = log ======================================================================================
+!! \n
+!! 07/11/16 - switch to v0.4
 ! ********************************************************************************************
 
 integer function treecode_size(treecode, N)
@@ -22,7 +27,7 @@ integer function treecode_size(treecode, N)
 !---------------------------------------------------------------------------------------------
 ! modules
 
-    ! global parameters
+    !> global parameters
     use module_params
 
 !---------------------------------------------------------------------------------------------
@@ -30,13 +35,13 @@ integer function treecode_size(treecode, N)
 
     implicit none
 
-    ! length of treecode vector
+    !> length of treecode vector
     integer(kind=ik), intent(in)    :: N
 
-    ! treecode vector
+    !> treecode vector
     integer(kind=ik), intent(in)    :: treecode(N)
 
-    ! loop variables
+    !> loop variables
     integer(kind=ik)                :: i
 
 !---------------------------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -6,14 +7,14 @@
 !> \version 0.5
 !> \author msr
 !
-! sets refinement status to -2 for all sister blocks, if coarsening is possible
+!> \brief sets refinement status to -2 for all sister blocks, if coarsening is possible
 !
-! input:    - light data array
-! output:   - light data array
-!
-! = log ======================================================================================
-!
-! 03/02/17 - create
+!> \details input:    - light data array \n
+!!          output:   - light data array
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 03/02/17 - create
 !
 ! ********************************************************************************************
 
@@ -28,13 +29,13 @@ subroutine ensure_completeness_3D( params, lgt_block, lgt_active, lgt_n )
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(in)      :: params
-    ! light data array
+    !> light data array
     integer(kind=ik), intent(inout)     :: lgt_block(:, :)
-    ! list of active blocks (light data)
+    !> list of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_active(:)
-    ! number of active blocks (light data)
+    !> number of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_n
 
     ! max treelevel

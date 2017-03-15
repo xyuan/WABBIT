@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -6,16 +7,16 @@
 !> \version 0.4
 !> \author msr
 !
-! balance the load
+!> \brief balance the load
 !
-! input:    - params, light and heavy data, neighbor data, lists of active blocks
-! output:   - light and heavy data arrays
-!
-! = log ======================================================================================
-!
-! 08/11/16    - switch to v0.4
-! 16/11/2016  - Avoid some communication by more carefully distributing the excess blocks
-! 05/12/2016  - add space filling curve distribution
+!< \details input:    - params, light and heavy data, neighbor data, lists of active blocks \n
+!!          output:   - light and heavy data arrays \n
+!! \n
+!> = log ======================================================================================
+!!\n
+!! 08/11/16    - switch to v0.4 \n
+!! 16/11/2016  - Avoid some communication by more carefully distributing the excess blocks \n
+!! 05/12/2016  - add space filling curve distribution \n
 !
 ! ********************************************************************************************
 
@@ -29,48 +30,48 @@ subroutine balance_load_2D( params, lgt_block, hvy_block, hvy_neighbor, lgt_acti
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(in)      :: params
-    ! light data array
+    !> light data array
     integer(kind=ik), intent(inout)     :: lgt_block(:, :)
-    ! heavy data array - block data
+    !> heavy data array - block data
     real(kind=rk), intent(inout)        :: hvy_block(:, :, :, :)
-    ! heavy data array - neighbor data
+    !> heavy data array - neighbor data
     integer(kind=ik), intent(inout)     :: hvy_neighbor(:,:)
 
-    ! list of active blocks (light data)
+    !> list of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_active(:)
-    ! number of active blocks (light data)
+    !> number of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_n
-    ! list of active blocks (heavy data)
+    !> list of active blocks (heavy data)
     integer(kind=ik), intent(in)        :: hvy_active(:)
-    ! number of active blocks (heavy data)
+    !> number of active blocks (heavy data)
     integer(kind=ik), intent(in)        :: hvy_n
 
-    ! send/receive buffer, note: size is equal to block data array, because if a block want to send all his data
+    !> send/receive buffer, note: size is equal to block data array, because if a block want to send all his data
     real(kind=rk)                       :: buffer_data( size(hvy_block,1), size(hvy_block,2), size(hvy_block,3), size(hvy_block,4) )
     integer(kind=ik)                    :: buffer_light( params%number_blocks )
 
-    ! light data list for working
+    !> light data list for working
     integer(kind=ik)                    :: my_block_list( size(lgt_block, 1), params%max_treelevel+2)
-    ! light id start
+    !> light id start
     integer(kind=ik)                    :: my_light_start
 
-    ! MPI error variable
+    !> MPI error variable
     integer(kind=ik)                    :: ierr
-    ! process rank
+    !> process rank
     integer(kind=ik)                    :: rank, proc_dist_id, proc_data_id
-    ! number of processes
+    !> number of processes
     integer(kind=ik)                    :: number_procs
-    ! MPI message tag
+    !> MPI message tag
     integer(kind=ik)                    :: tag
-    ! MPI status
+    !> MPI status
     integer                             :: status(MPI_status_size)
 
-    ! distribution type
+    !> distribution type
     character(len=80)                   :: distribution
 
-    ! block distribution lists
+    !> block distribution lists
     integer(kind=ik), allocatable       :: opt_dist_list(:), dist_list(:), friends(:,:), affinity(:)
 
     ! allocation error variable
@@ -81,22 +82,22 @@ subroutine balance_load_2D( params, lgt_block, hvy_block, hvy_neighbor, lgt_acti
                                            id_send, id_recv, send_deficit, recv_deficit, tmp(1), light_id, heavy_id, &
                                            sfc_id
 
-    ! com plan
+    !> com plan
     integer(kind=ik), allocatable       :: com_plan(:,:)
 
-    ! size of data array
+    !> size of data array
     integer(kind=ik)                    :: data_size
 
-    ! free light/heavy data id
+    !> free light/heavy data id
     integer(kind=ik)                    :: free_light_id, free_heavy_id
 
     ! cpu time variables for running time calculation
     real(kind=rk)                       :: sub_t0, sub_t1
 
-    ! space filling curve list
+    !> space filling curve list
     integer(kind=ik), allocatable       :: sfc_list(:), sfc_com_list(:,:)
 
-    ! hilbert code
+    !> hilbert code
     integer(kind=ik)                    :: hilbertcode(params%max_treelevel)
 
 !---------------------------------------------------------------------------------------------

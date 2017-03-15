@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -6,18 +7,18 @@
 !> \version 0.5
 !> \author  msr
 !
-!> main program, init all data, start time loop, output on screen during program run \n
-!!
+!> \brief main program, init all data, start time loop, output on screen during program run \n
+!
 !> = log ======================================================================================
 !! \n 
 !> 04/11/16 - switch to v0.4 \n
 !> 23/11/16 - use computing time array for simple performance tests \n
 !> 07/12/16 - now uses heavy work data array \n
-!> 25/01/17 - switch to 3D, v0.5 \n
+!> 25/01/17 - switch to 3D, v0.5 
 ! ********************************************************************************************
 
 program main
-  
+
 !---------------------------------------------------------------------------------------------
 ! modules
 
@@ -40,7 +41,8 @@ program main
 
     implicit none
 
-    ! MPI error variable
+    !> \param
+    !> MPI error variable
     integer(kind=ik)                    :: ierr
     !> process rank
     integer(kind=ik)                    :: rank

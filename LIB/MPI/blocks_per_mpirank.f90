@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 subroutine blocks_per_mpirank( params, actual_blocks_per_proc, hvy_n )
   implicit none
   ! user defined parameter structure

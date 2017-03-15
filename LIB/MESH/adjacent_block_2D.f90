@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -8,14 +9,16 @@
 !
 !> \brief give treecode for adjacent block
 !
-!> \details input:    - treecode for block N
+!> \details input:    
+!!                    - treecode for block N
 !!                    - direction for neighbor search
 !!                    - max treelevel
-!> \details output:   - neighbor treecode, for neighbor on same level
+!! output:   
+!!                    - neighbor treecode, for neighbor on same level
 !
 !
 !> = log ======================================================================================
-!!
+!! \n
 !! 07/11/16 - switch to v0.4
 ! ********************************************************************************************
 

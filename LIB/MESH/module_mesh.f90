@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -6,11 +7,12 @@
 !> \version 0.4
 !> \author msr
 !
-! module for all mesh subroutines
+!> \brief module for all mesh subroutines
 !
-! = log ======================================================================================
-!
-! 24/11/16 - create
+!> \details
+!! = log ======================================================================================
+!! \n
+!! 24/11/16 - create
 ! ********************************************************************************************
 
 module module_mesh
@@ -19,13 +21,13 @@ module module_mesh
 ! modules
 
     use mpi
-    ! global parameters
+    !> global parameters
     use module_params
-    ! debug module
+    !> debug module
     use module_debug
-    ! interpolation routines
+    !> interpolation routines
     use module_interpolation
-    ! time step module
+    !> time step module
     use module_time_step
 
 !---------------------------------------------------------------------------------------------

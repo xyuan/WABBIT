@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 !********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -8,12 +9,16 @@
 !
 !> \brief mesh adapting main function
 !
-!> \details input:    - params, light and heavy data
-!> \details output:   - light and heavy data arrays
+!> \details input:    - params, light and heavy data \n
+!!          output:   - light and heavy data arrays
 !!
 !> = log ======================================================================================
 !!
 !! 10/11/16 - switch to v0.4
+! ==========================================================================================
+!> calls
+!> - threshold_block 
+!> - create_lgt_active_list
 !********************************************************************************************
 
 subroutine adapt_mesh( params, lgt_block, hvy_block, hvy_neighbor, lgt_active, lgt_n, hvy_active, hvy_n )

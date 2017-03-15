@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -6,15 +7,16 @@
 !> \version 0.4
 !> \author msr, engels
 !
-! refine every block to create the wavelet safety zone
+!> \brief refine every block to create the wavelet safety zone
 !
-! input:    - params, light and heavy data
-! output:   - light and heavy data arrays
-!
-! = log ======================================================================================
-!
-! 08/11/16 - switch to v0.4
-! 03/02/17 - 3D heavy data
+!> \details
+!! input:    - params, light and heavy data \n
+!! output:   - light and heavy data arrays  \n
+!!
+!! = log ======================================================================================
+!! \n
+!! 08/11/16 - switch to v0.4 \n
+!! 03/02/17 - 3D heavy data
 !
 ! ********************************************************************************************
 
@@ -28,21 +30,21 @@ subroutine refine_everywhere( params, lgt_block, hvy_block, lgt_active, lgt_n, h
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(in)      :: params
-    ! light data array
+    !> light data array
     integer(kind=ik), intent(inout)     :: lgt_block(:, :)
-    ! heavy data array - block data
+    !> heavy data array - block data
     real(kind=rk), intent(inout)        :: hvy_block(:, :, :, :, :)
 
-    ! list of active blocks (light data)
+    !> list of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_active(:)
-    ! number of active blocks (light data)
+    !> number of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_n
 
-    ! list of active blocks (heavy data)
+    !> list of active blocks (heavy data)
     integer(kind=ik), intent(in)        :: hvy_active(:)
-    ! number of active blocks (heavy data)
+    !> number of active blocks (heavy data)
     integer(kind=ik), intent(in)        :: hvy_n
 
     ! loop variables

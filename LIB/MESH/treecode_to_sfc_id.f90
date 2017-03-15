@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -6,15 +7,16 @@
 !> \version 0.4
 !> \author msr
 !
-! convert given treecode to position in sfc
+!> \brief convert given treecode to position in sfc
 !
-! input:    - treecode
-! output:   - position in sfc curve
-!
-!
-! = log ======================================================================================
-!
-! 05/12/16 - create
+!> \details
+!! input:    - treecode \n
+!! output:   - position in sfc curve \n
+!!
+!!
+!! = log ======================================================================================
+!! \n
+!! 05/12/16 - create
 ! ********************************************************************************************
 
 subroutine treecode_to_sfc_id(sfc_id, treecode, n)
@@ -27,13 +29,13 @@ subroutine treecode_to_sfc_id(sfc_id, treecode, n)
 
     implicit none
 
-    ! sfc id
+    !> sfc id
     integer(kind=ik), intent(out)       :: sfc_id
 
-    ! treecode size
+    !> treecode size
     integer(kind=ik), intent(in)        :: n
 
-    ! treecode
+    !> treecode
     integer(kind=ik), intent(in)        :: treecode(n)
 
     ! loop variable

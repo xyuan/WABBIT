@@ -1,4 +1,5 @@
 !> \file
+!> \callgraph
 ! ********************************************************************************************
 ! WABBIT
 ! ============================================================================================
@@ -6,12 +7,15 @@
 !> \version 0.5
 !> \author msr
 !
-! encoding 3D treecode
+!> \brief encoding 3D treecode
 !
-! input:    - block position varaibles i, j, k
-!           - number of blocks
-!           - length of treecode in light data
-! output:   - treecode
+!> \details  input:    
+!!                    - block position varaibles i, j, k
+!!                    - number of blocks
+!!                    - length of treecode in light data
+!!
+!!           output:   
+!!                    - treecode
 !
 ! = log ======================================================================================
 !
