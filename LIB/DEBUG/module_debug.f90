@@ -6,14 +6,15 @@
 !> \name module_debug.f90
 !> \version 0.4
 !> \author msr
-!
-! module for all debug subroutines
-!
-! = log ======================================================================================
-!
-! 29/11/16 - create
-!
-! TODO: union with debug data structure
+!!
+!! \brief module for all debug subroutines
+!!
+!! \details
+!! = log ======================================================================================
+!! \n
+!! 29/11/16 - create
+!!
+!! \todo  union with debug data structure
 ! ********************************************************************************************
 
 module module_debug

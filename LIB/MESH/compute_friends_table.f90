@@ -54,7 +54,7 @@ subroutine compute_friends_table(params, hvy_neighbor, friends, hvy_active, hvy_
     !> number of active blocks (heavy data)
     integer(kind=ik), intent(in)        :: hvy_n
 
-    !> friends array buffer
+    ! friends array buffer
     integer(kind=ik), allocatable       :: friends_loc(:,:)
 
     ! loop variables

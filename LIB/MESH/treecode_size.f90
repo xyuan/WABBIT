@@ -41,7 +41,7 @@ integer function treecode_size(treecode, N)
     !> treecode vector
     integer(kind=ik), intent(in)    :: treecode(N)
 
-    !> loop variables
+    ! loop variables
     integer(kind=ik)                :: i
 
 !---------------------------------------------------------------------------------------------

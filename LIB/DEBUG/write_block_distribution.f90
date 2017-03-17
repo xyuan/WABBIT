@@ -7,14 +7,15 @@
 !> \version 0.4
 !> \author msr
 !
-! write current block distribution to file
+!> \brief write current block distribution to file
 !
-! input:    - current distribution list
-! output:   -
-!
-! = log ======================================================================================
-!
-! 05/12/16 - create
+!> \details
+!! input:    - current distribution list \n
+!! output:   -
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 05/12/16 - create
 ! ********************************************************************************************
 
 subroutine write_block_distribution( dist_list )
@@ -27,7 +28,7 @@ subroutine write_block_distribution( dist_list )
 
     implicit none
 
-    ! iteration
+    !> iteration
     integer(kind=ik), intent(in)        :: dist_list(:)
 
     ! MPI error variable

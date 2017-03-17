@@ -16,8 +16,9 @@
 !! we decide which blocks will be sent.
 !-------------------------------------------------------------------------------
 !
-!> input:    - params, non-synchronized light data list, neighbor list \n
-!! output:   - affinity list \n
+!> \details
+!!  input:    - params, non-synchronized light data list, neighbor list \n
+!! output:    - affinity list \n
 !
 !> = log ======================================================================================
 !! \n

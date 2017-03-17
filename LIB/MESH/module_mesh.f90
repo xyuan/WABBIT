@@ -43,77 +43,77 @@ module module_mesh
 
 contains
 
-    ! create list of active blocks (light data)
+    !> create list of active blocks (light data)
     include "create_lgt_active_list.f90"
 
-    ! create list of active blocks (heavy data)
+    !> create list of active blocks (heavy data)
     include "create_hvy_active_list.f90"
 
-    ! update neighbors, 2D/3D
+    !> update neighbors, 2D/3D
     include "update_neighbors_2D.f90"
     include "update_neighbors_3D.f90"
 
-    ! neighbor search, edge
+    !> neighbor search, edge
     include "find_neighbor_edge_2D.f90"
     include "find_neighbor_edge_3D.f90"
 
-    ! neighbor search, corner
+    !> neighbor search, corner
     include "find_neighbor_corner_2D.f90"
     include "find_neighbor_corner_3D.f90"
 
-    ! neighbor search, face
+    !> neighbor search, face
     include "find_neighbor_face_3D.f90"
 
-    ! search routine to find light data id corresponding to treecode
+    !> search routine to find light data id corresponding to treecode
     include "does_block_exist.f90"
 
-    ! block refinement subroutine
+    !> block refinement subroutine
     include "refine_everywhere.f90"
 
-    ! check treelevel restrictions
+    !> check treelevel restrictions
     include "respect_min_max_treelevel.f90"
 
-    ! check treelevel restrictions
+    !> check treelevel restrictions
     include "refine_mesh_2D.f90"
     include "refine_mesh_3D.f90"
 
-    ! adapt the mesh
+    !> adapt the mesh
     include "adapt_mesh.f90"
 
-    ! threshold the blocks
+    !> threshold the blocks
     include "threshold_block.f90"
 
-    ! gradedness check
+    !> gradedness check
     include "ensure_gradedness.f90"
 
-    ! completeness check
+    !> completeness check
     include "ensure_completeness_2D.f90"
     include "ensure_completeness_3D.f90"
 
-    ! coarse mesh
+    !> coarse mesh
     include "coarse_mesh_2D.f90"
     include "coarse_mesh_3D.f90"
 
-    ! balance the load
+    !> balance the load
     include "balance_load_2D.f90"
     include "balance_load_3D.f90"
 
-    ! create list with number of blocks per rank
+    !> create list with number of blocks per rank
     include "set_desired_num_blocks_per_rank.f90"
 
-    ! create friends table
+    !> create friends table
     include "compute_friends_table.f90"
 
-    ! affinity list
+    !> affinity list
     include "compute_affinity.f90"
 
-    ! treecode to 2D z-sfc position
+    !> treecode to 2D z-sfc position
     include "treecode_to_sfc_id.f90"
 
-    ! transfer treecode to 2D hilbert code
+    !> transfer treecode to 2D hilbert code
     include "treecode_to_hilbercode.f90"
 
-    ! transfer treecode to 3D z-curve code
+    !> transfer treecode to 3D z-curve code
     include "treecode_to_3D_z_curve.f90"
 
 end module module_mesh

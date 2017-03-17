@@ -42,10 +42,10 @@ subroutine respect_min_max_treelevel( params, lgt_block, lgt_active, lgt_n)
     !> number of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_n
 
-    !> treelevel restrictions
+    ! treelevel restrictions
     integer(kind=ik)                    :: max_level, min_level
 
-    !> loop variables
+    ! loop variables
     integer(kind=ik)                    :: k
 
 !---------------------------------------------------------------------------------------------

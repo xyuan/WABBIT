@@ -7,26 +7,33 @@
 !> \version 0.5
 !> \author msr, engels
 !
-! allocate and reset heavy block data
+!> \brief allocate and reset heavy block data
 !
-!                   -> dim 1: x coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-!                   -> dim 2: y coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-!                   -> dim 3: z coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-!                   -> dim 4: data type ( field_1, 2:number_data_fields+1)
-! heavy data array  -> dim 5: block id  ( 1:number_blocks )
-!           field_1 (to save mixed data):   line 1: x coordinates
-!                                           line 2: y coordinates
-!
-! input:    - maximal number of blocks per process
-!           - grid parameter
-!           - number of data fields
-! output:   - empty heavy data array
-!
-! = log ======================================================================================
-!
-! 04/11/16 - switch to v0.4
-! 26/01/17 - use process rank from params struct
-!          - 3D hvy data array, for 2D cases: use dim_size=1 for third dimension
+!> \details
+!! heavy data array:
+!!                   - dim 1: x coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+!!                   - dim 2: y coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+!!                   - dim 3: z coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+!!                   - dim 4: data type ( field_1, 2:number_data_fields+1)
+!!                   - dim 5: block id  ( 1:number_blocks )
+!!
+!! field_1 (to save mixed data):   
+!!                               - line 1: x coordinates
+!!                               - line 2: y coordinates
+!!
+!! input:    
+!!           - maximal number of blocks per process
+!!           - grid parameter
+!!           - number of data fields
+!!
+!! output:   
+!!           - empty heavy data array
+!!
+!! = log ======================================================================================
+!! \n
+!! 04/11/16 - switch to v0.4 \n
+!! 26/01/17 - use process rank from params struct \n
+!!          - 3D hvy data array, for 2D cases: use dim_size=1 for third dimension
 !
 ! ********************************************************************************************
 
@@ -37,10 +44,10 @@ subroutine  allocate_block_data( params, hvy_block )
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(in)              :: params
 
-    ! heavy data array
+    !> heavy data array
     real(kind=rk), allocatable, intent(out)     :: hvy_block(:, :, :, :, :)
 
     ! number of heavy data

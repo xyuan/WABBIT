@@ -7,20 +7,22 @@
 !> \version 0.4
 !> \author msr
 !
-! allocate and reset block list (global light data)
+!> \brief allocate and reset block list (global light data)
 !
-! light data array  -> line number = ( 1 + proc_rank ) * heavy_data_line_number
-!                   -> column(1:max_treelevel): block treecode, treecode -1 => block is inactive
-!                   -> column(max_treelevel+1): treecode length = mesh level
-!                   -> column(max_treelevel+2):   refinement status (-1..coarsen / 0...no change / +1...refine)
-!
-! input:    - params
-! output:   - empty light data array
-!
-! = log ======================================================================================
-!
-! 04/11/16 - switch to v0.4
-! 26/01/17 - use process rank and number of procs from params struct
+!> \details
+!! light data array  
+!!                   - line number = ( 1 + proc_rank ) * heavy_data_line_number
+!!                   - column(1:max_treelevel): block treecode, treecode -1 => block is inactive
+!!                   - column(max_treelevel+1): treecode length = mesh level
+!!                   - column(max_treelevel+2):   refinement status (-1..coarsen / 0...no change / +1...refine)
+!!
+!! input:    - params \n
+!! output:   - empty light data array
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 04/11/16 - switch to v0.4 \n
+!! 26/01/17 - use process rank and number of procs from params struct
 !
 ! ********************************************************************************************
 
@@ -31,10 +33,10 @@ subroutine  allocate_block_list( params, lgt_block )
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(in)              :: params
 
-    ! light data array
+    !> light data array
     integer(kind=ik), allocatable, intent(out)  :: lgt_block(:, :)
 
     ! number of light and heavy data

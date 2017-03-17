@@ -16,10 +16,10 @@
 !!
 !!           output:   
 !!                    - treecode
-!
-! = log ======================================================================================
-!
-! 26/01/17 - create
+!!
+!! = log ======================================================================================
+!! \n
+!! 26/01/17 - create
 !
 ! ********************************************************************************************
 
@@ -36,14 +36,14 @@ subroutine encoding_3D(treecode, i, j, k, block_num, treeN)
 
     implicit none
 
-    ! block position coordinates
+    !> block position coordinates
     integer(kind=ik), intent(in)    :: i, j, k
-    ! number of blocks
+    !> number of blocks
     integer(kind=ik), intent(in)    :: block_num
 
-    ! treecode size
+    !> treecode size
     integer(kind=ik), intent(in)    :: treeN
-    ! treecode
+    !> treecode
     integer(kind=ik), intent(out)   :: treecode(treeN)
 
     ! variables for calculate real treecode length N

@@ -9,9 +9,10 @@
 !
 !> \brief balance the load
 !
-!> \details input:    - params, light and heavy data, neighbor data, lists of active blocks \n
-!!          output:   - light and heavy data arrays
-!! \n
+!> \details 
+!! input:    - params, light and heavy data, neighbor data, lists of active blocks \n
+!! output:   - light and heavy data arrays \n
+!!
 !> = log ======================================================================================
 !!\n
 !! 09/02/17    - create
@@ -40,7 +41,7 @@ subroutine balance_load_3D( params, lgt_block, hvy_block, lgt_active, lgt_n)
     !> number of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_n
 
-    !> send/receive buffer, note: size is equal to block data array, because if a block want to send all his data
+    ! send/receive buffer, note: size is equal to block data array, because if a block want to send all his data
     real(kind=rk)                       :: buffer_data( size(hvy_block,1), size(hvy_block,2), size(hvy_block,3), size(hvy_block,4), size(hvy_block,5) )
     integer(kind=ik)                    :: buffer_light( params%number_blocks )
 

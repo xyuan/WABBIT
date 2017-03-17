@@ -7,14 +7,15 @@
 !> \version 0.4
 !> \author msr
 !
-! write position communication matrix to file
+!> \brief write position communication matrix to file
 !
-! input:    - current position com matrix
-! output:   -
-!
-! = log ======================================================================================
-!
-! 16/12/16 - create
+!> \details
+!! input:    - current position com matrix \n
+!! output:   -
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 16/12/16 - create
 ! ********************************************************************************************
 
 subroutine write_com_matrix_pos( com_matrix )
@@ -27,7 +28,7 @@ subroutine write_com_matrix_pos( com_matrix )
 
     implicit none
 
-    ! iteration
+    !> iteration
     integer(kind=ik), intent(in)        :: com_matrix(:, :)
 
     ! MPI error variable

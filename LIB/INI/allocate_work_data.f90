@@ -7,22 +7,23 @@
 !> \version 0.5
 !> \author msr
 !
-! allocate and reset heavy work data
-!
-!                   -> dim 1: x coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-!                   -> dim 2: y coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-!                   -> dim 3: z coord   ( 1:number_block_nodes+2*number_ghost_nodes )
-!                   -> dim 4: data type ( old data, k1, k2, k3, k4 )
-! heavy work array  -> dim 5: block id  ( 1:number_blocks )
-!
-! input:    - params
-! output:   - empty heavy data array
-!
-! = log ======================================================================================
-!
-! 07/12/16 - create
-! 26/01/17 - use process rank from params struct
-!          - 3D hvy data array, for 2D cases: use dim_size=1 for third dimension
+!> \brief allocate and reset heavy work data
+!> \details
+!! heavy work array
+!!                   - dim 1: x coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+!!                   - dim 2: y coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+!!                   - dim 3: z coord   ( 1:number_block_nodes+2*number_ghost_nodes )
+!!                   - dim 4: data type ( old data, k1, k2, k3, k4 )
+!!                   - dim 5: block id  ( 1:number_blocks )
+!!
+!! input:    - params \n
+!! output:   - empty heavy data array
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 07/12/16 - create \n
+!! 26/01/17 - use process rank from params struct \n
+!!          - 3D hvy data array, for 2D cases: use dim_size=1 for third dimension
 !
 ! ********************************************************************************************
 
@@ -33,10 +34,10 @@ subroutine  allocate_work_data( params, hvy_work )
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(in)              :: params
 
-    ! heavy work data array
+    !> heavy work data array
     real(kind=rk), allocatable, intent(out)     :: hvy_work(:, :, :, :, :)
 
     ! number of heavy data

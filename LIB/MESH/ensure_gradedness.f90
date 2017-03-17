@@ -9,8 +9,9 @@
 !
 !> \brief check the gradedness after new refinement status
 !
-!> \details  input:    - light data, neighbor list, list of active blocks(light data) \n
-!!           output:   - light data array
+!> \details  
+!! input:    - light data, neighbor list, list of active blocks(light data) \n
+!! output:   - light data array
 !! \n
 !! = log ======================================================================================
 !! \n

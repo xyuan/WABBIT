@@ -9,8 +9,9 @@
 !
 !> \brief sets refinement status to -2 for all sister blocks, if coarsening is possible
 !
-!> \details input:    - light data array \n
-!!          output:   - light data array
+!> \details 
+!! input:    - light data array \n
+!! output:   - light data array
 !! \n
 !! = log ======================================================================================
 !! \n

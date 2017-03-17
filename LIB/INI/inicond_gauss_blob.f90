@@ -7,17 +7,18 @@
 !> \version 0.5
 !> \author engels, msr
 !
-! initialize gauss pulse for 2D case
-! note: field phi is 3D, but third dimension is not used
+!> \brief initialize gauss pulse for 2D case \n
+!! note: field phi is 3D, but third dimension is not used
 !
-! input:    - params
-! output:   - light and heavy data arrays
-!
-! = log ======================================================================================
-!
-! 04/11/16 - switch to v0.4
-! 26/01/17 - use process rank from params struct
-!          - use v0.5 hvy data array
+!> \details
+!! input:    - params \n
+!! output:   - light and heavy data arrays
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 04/11/16 - switch to v0.4 \n
+!! 26/01/17 - use process rank from params struct \n
+!!          - use v0.5 hvy data array
 !
 ! ********************************************************************************************
 
@@ -28,13 +29,13 @@ subroutine inicond_gauss_blob( params, lgt_block, hvy_block )
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(inout)       :: params
 
-    ! light data array
+    !> light data array
     integer(kind=ik), intent(inout)         :: lgt_block(:, :)
 
-    ! heavy data array - block data
+    !> heavy data array - block data
     real(kind=rk), intent(inout)            :: hvy_block(:, :, :, :, :)
 
     ! initial data field

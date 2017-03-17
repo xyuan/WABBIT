@@ -10,8 +10,9 @@
 !> \brief coarse the mesh: \n
 !! every proc work on light data array
 !
-!> \details input:    - params, light and heavy data \n
-!!          output:   - light and heavy data arrays
+!> \details 
+!! input:    - params, light and heavy data \n
+!! output:   - light and heavy data arrays
 !! \n
 !> = log ======================================================================================
 !! \n

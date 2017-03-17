@@ -19,11 +19,12 @@
 !! output:   
 !!           - neighbor list array
 !!
-! --------------------------------------------------------------------------------------------
-!> \details
-!! neighbor codes:
-! ---------------
-!> for imagination:  
+!! \n
+!!
+!  --------------------------------------------------------------------------------------------
+!> neighbor codes: \n
+!  --------------- 
+!> for imagination: 
 !!                   - 6-sided dice with '1'-side on top, '6'-side on bottom, '2'-side in front
 !!                   - edge: boundary between two sides - use sides numbers for coding
 !!                   - corner: between three sides - so use all three sides numbers

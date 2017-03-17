@@ -9,15 +9,15 @@
 !
 !> \brief  create a list of all active blocks (heavy data)
 !> \details dim 1: heavy data id
-!
-!> input:   
+!! \n
+!! input:   
 !!             - light data
 !!
 !! output:  
 !!             - list of active blocks, heavy data id
 !!             - number of active blocks
-!
-!> = log ======================================================================================
+!!
+!! = log ======================================================================================
 !! \n
 !! 24/11/16 - create subroutine
 ! ********************************************************************************************

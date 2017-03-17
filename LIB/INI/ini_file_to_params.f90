@@ -7,14 +7,15 @@
 !> \version 0.5
 !> \author msr
 !
-! distribute blocks at start => create light data array
+!> \brief distribute blocks at start => create light data array
 !
-! input:    - filename
-! output:   - filled parameter struct
-!
-! = log ======================================================================================
-!
-! 25/01/17    - create
+!>  \details
+!! input:    - filename \n
+!! output:   - filled parameter struct
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 25/01/17    - create
 !
 ! ********************************************************************************************
 
@@ -25,10 +26,10 @@ subroutine ini_file_to_params( params, filename )
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(inout)               :: params
 
-    ! inifile name
+    !> inifile name
     character(len=80), intent(in)                   :: filename
 
     ! process rank

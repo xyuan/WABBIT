@@ -7,15 +7,16 @@
 !> \version 0.5
 !> \author msr
 !
-! initialize zero for all fields
-! work for 2D and 3D data
+!> \brief initialize zero for all fields \n
+!! work for 2D and 3D data
 !
-! input:    - params
-! output:   - light and heavy data arrays
-!
-! = log ======================================================================================
-!
-! 26/01/17 - create
+!> \details
+!! input:    - params \n
+!! output:   - light and heavy data arrays
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 26/01/17 - create
 !
 ! ********************************************************************************************
 
@@ -26,13 +27,13 @@ subroutine inicond_zeros( params, lgt_block, hvy_block )
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(inout)       :: params
 
-    ! light data array
+    !> light data array
     integer(kind=ik), intent(inout)         :: lgt_block(:, :)
 
-    ! heavy data array - block data
+    !> heavy data array - block data
     real(kind=rk), intent(inout)            :: hvy_block(:, :, :, :, :)
 
     ! process rank
