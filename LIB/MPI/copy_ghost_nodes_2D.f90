@@ -7,23 +7,28 @@
 !> \version 0.4
 !> \author msr
 !
-! copy ghost points from sender block to receiver block
-! note: works only for block on same process
+!> \brief copy ghost points from sender block to receiver block \n
+!! note: works only for block on same process
 !
-! input:    - heavy data array
-!           - sender block id
-!           - receiver block id
-!           - neighbor relations between sender/receiver
-!           - level difference between these two blocks
-! output:   - heavy data array
+!> \details
+!! input:    
+!!           - heavy data array
+!!           - sender block id
+!!           - receiver block id
+!!           - neighbor relations between sender/receiver
+!!           - level difference between these two blocks
+!!
+!! output:   
+!!           - heavy data array
 !
 ! -------------------------------------------------------------------------------------------------------------------------
-! dirs = (/'__N', '__E', '__S', '__W', '_NE', '_NW', '_SE', '_SW', 'NNE', 'NNW', 'SSE', 'SSW', 'ENE', 'ESE', 'WNW', 'WSW'/)
+!> \details
+!! dirs = (/'__N', '__E', '__S', '__W', '_NE', '_NW', '_SE', '_SW', 'NNE', 'NNW', 'SSE', 'SSW', 'ENE', 'ESE', 'WNW', 'WSW'/)
 ! -------------------------------------------------------------------------------------------------------------------------
-!
-! = log ======================================================================================
-!
-! 09/11/16 - create for v0.4
+!> \n
+!! = log ======================================================================================
+!! \n
+!! 09/11/16 - create for v0.4
 ! ********************************************************************************************
 
 subroutine copy_ghost_nodes_2D( params, hvy_block, sender_id, receiver_id, neighborhood, level_diff)

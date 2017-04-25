@@ -7,11 +7,12 @@
 !> \version 0.4
 !> \author msr
 !
-! time step module
+!> \brief time step module
 !
-! = log ======================================================================================
-!
-! 24/11/16 - create
+!> \details
+!! = log ======================================================================================
+!! \n
+!! 24/11/16 - create
 ! ********************************************************************************************
 
 module module_time_step
@@ -42,5 +43,6 @@ contains
 
     ! time step
     include "time_step_RK4.f90"
+    include "calculate_time_step.f90"
 
 end module module_time_step

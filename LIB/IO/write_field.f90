@@ -7,21 +7,29 @@
 !> \version 0.5
 !> \author engels, msr
 !
-! write data of a single datafield dF at timestep iteration and time t
+!> \brief write data of a single datafield dF at timestep iteration and time t
 !
-! input:    - time loop parameter
-!           - datafield number
-!           - parameter array
-!           - light data array
-!           - heavy data array
-! output:   -
-!
-! = log ======================================================================================
-!
-! 07/11/16 - switch to v0.4
-! 26/01/17 - switch to 3D, v0.5
-!          - add dirs_3D array for 3D neighbor codes
-! 21/02/17 - use parallel IO, write one data array with all data
+!> \details
+!! input:    
+!!           - time loop parameter
+!!           - datafield number
+!!           - parameter array
+!!           - light data array
+!!           - heavy data array
+!!
+!! output:   -
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 07/11/16 
+!!          - switch to v0.4
+!!
+!! 26/01/17 
+!!          - switch to 3D, v0.5
+!!          - add dirs_3D array for 3D neighbor codes
+!!
+!! 21/02/17 
+!!          - use parallel IO, write one data array with all data
 !
 ! ********************************************************************************************
 subroutine write_field( fname, time, iteration, dF, params, hvy_block, lgt_active, lgt_n, hvy_n)
@@ -37,24 +45,24 @@ subroutine write_field( fname, time, iteration, dF, params, hvy_block, lgt_activ
 
     implicit none
 
-    ! file name
+    !> file name
     character(len=*), intent(in)        :: fname
 
-    ! time loop parameters
+    !> time loop parameters
     real(kind=rk), intent(in)           :: time
     integer(kind=ik), intent(in)        :: iteration
 
-    ! datafield number
+    !> datafield number
     integer(kind=ik), intent(in)        :: dF
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(in)      :: params
-    ! heavy data array - block data
+    !> heavy data array - block data
     real(kind=rk), intent(in)           :: hvy_block(:, :, :, :, :)
 
-    ! list of active blocks (light data)
+    !> list of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_active(:)
-    ! number of active blocks (light data)
+    !> number of active blocks (light data)
     integer(kind=ik), intent(in)        :: lgt_n
     ! number of active blocks (heavy data)
     integer(kind=ik)                    :: hvy_n
@@ -203,8 +211,8 @@ subroutine write_field( fname, time, iteration, dF, params, hvy_block, lgt_activ
         ! 2D data case
         call write_dset_mpi_hdf5_3D(file_id, "blocks", lbounds2D, ubounds2D, myblockbuffer(:,:,1,:))
         call write_attribute(file_id, "blocks", "domain-size", (/params%Lx, params%Ly/))
-        call write_dset_mpi_hdf5_2D(file_id, "coords_origin", (/0,lbounds2D(3)/), (/1,ubounds2D(3)/), coords_origin)
-        call write_dset_mpi_hdf5_2D(file_id, "coords_spacing", (/0,lbounds2D(3)/), (/1,ubounds2D(3)/), coords_spacing)
+        call write_dset_mpi_hdf5_2D(file_id, "coords_origin", (/0,lbounds2D(3)/), (/1,ubounds2D(3)/), coords_origin(1:2,:))
+        call write_dset_mpi_hdf5_2D(file_id, "coords_spacing", (/0,lbounds2D(3)/), (/1,ubounds2D(3)/), coords_spacing(1:2,:))
     endif
 
     ! add aditional annotations

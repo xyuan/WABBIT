@@ -34,8 +34,9 @@
 !! = log ======================================================================================
 !! \n
 !! 25/01/17 - create
-!
 ! ********************************************************************************************
+!
+!> \image html hilbert.png "Example for Path of the Hilbert Curve in 2D" width=300cm
 
 subroutine treecode_to_hilbercode(treecode, hilbertcode, n)
 

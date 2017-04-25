@@ -6,15 +6,12 @@
 !> \name module_params.f90
 !> \version 0.4
 !> \author msr
-!
-! params data structure, define all constant parameters for global use
-!
-! todo: module actually only works for specific RHS, split between RHS parameters and program
-!       parameters in future versions
-!
-! = log ======================================================================================
-!
-! 04/11/16 - switch to v0.4, merge old block_params structure with new structure
+!> \brief params data structure, define all constant parameters for global use
+!> \todo module actually only works for specific RHS, split between RHS parameters and program
+!!       parameters in future versions
+!> = log ======================================================================================
+!! \n
+!! 04/11/16 - switch to v0.4, merge old block_params structure with new structure
 ! ********************************************************************************************
 
 module module_params
@@ -36,10 +33,14 @@ module module_params
 
         ! maximal time for main time loop
         real(kind=rk)                               :: time_max
+        ! fixed time step value
+        real(kind=rk)                               :: dt                              
         ! CFL criteria for time step calculation
         real(kind=rk)                               :: CFL
         ! data writing frequency
         integer(kind=ik)                            :: write_freq
+        ! method to calculate time step
+        character(len=80)                           :: time_step_calc
 
         ! threshold for wavelet indicator
         real(kind=rk)                               :: eps

@@ -50,9 +50,6 @@ subroutine treecode_to_3D_z_curve(sfc_id, treecode, n)
 !---------------------------------------------------------------------------------------------
 ! main body
 
-    ! calculate sfc id
-    ! change -1 in treecode to 0
-    ! so every treecode is on highest level
     do k = 1, n
         if ( treecode(n-k+1) == -1 ) then
             ! nothing to do, treecode element is "0"
@@ -61,5 +58,17 @@ subroutine treecode_to_3D_z_curve(sfc_id, treecode, n)
             sfc_id = sfc_id + 8**(k-1) * treecode(n-k+1)
         end if
     end do
+
+    ! ! calculate sfc id
+    ! ! change -1 in treecode to 0
+    ! ! so every treecode is on highest level
+    ! do k = 1, n
+    !     if ( treecode(n-k+1) == -1 ) then
+    !         ! nothing to do, treecode element is "0"
+    !     else
+    !         ! non zero element
+    !         sfc_id = sfc_id + 8**(k-1) * treecode(n-k+1)
+    !     end if
+    ! end do
 
 end subroutine treecode_to_3D_z_curve

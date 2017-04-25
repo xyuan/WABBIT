@@ -7,14 +7,15 @@
 !> \version 0.4
 !> \author msr
 !
-! fill receive buffer
+!> \brief fill receive buffer
 !
-! input:    -
-! output:   - filled receive buffer
-!
-! = log ======================================================================================
-!
-! 13/01/17 - create for v0.4
+!> \details
+!! input:    -      \n
+!! output:   - filled receive buffer
+!! \n
+!! = log ======================================================================================
+!! \n
+!! 13/01/17 - create for v0.4
 !
 ! ********************************************************************************************
 
@@ -28,18 +29,18 @@ subroutine fill_receive_buffer( params, int_send_buffer, real_send_buffer, int_r
 
     implicit none
 
-    ! user defined parameter structure
+    !> user defined parameter structure
     type (type_params), intent(in)      :: params
 
-    ! send/receive buffer, integer and real
+    !> send/receive buffer, integer and real
     integer(kind=ik), intent(in)        :: int_send_buffer(:,:)
     integer(kind=ik), intent(out)       :: int_receive_buffer(:,:)
 
     real(kind=rk), intent(in)           :: real_send_buffer(:,:)
     real(kind=rk), intent(out)          :: real_receive_buffer(:,:)
 
-    ! communications matrix: neighboring proc rank
-    ! com matrix pos: position in send buffer
+    !> communications matrix: neighboring proc rank \n
+    !! com matrix pos: position in send buffer
     integer(kind=ik), intent(in)        :: com_matrix(:,:), com_matrix_pos(:,:)
 
 !---------------------------------------------------------------------------------------------
