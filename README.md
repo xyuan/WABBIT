@@ -1,4 +1,4 @@
-# WABBIT
+# WABBIT (old master, dated 25.06.2018, backup branch)
 ## (W)avelet (A)daptive (B)lock-(B)ased solver for (I)nteractions in (T)urbulence
 
 ## Getting Started
