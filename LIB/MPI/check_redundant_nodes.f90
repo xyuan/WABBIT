@@ -26,7 +26,7 @@ subroutine check_redundant_nodes_clean( params, lgt_block, hvy_block, hvy_neighb
     ! MPI parameter
     integer(kind=ik)                    :: myrank
     ! loop variables
-    integer(kind=ik)                    :: N, k, l, dF, neighborhood, neighbor_num, level_diff
+    integer(kind=ik)                    :: N, k, l, neighborhood, neighbor_num, level_diff
     ! id integers
     integer(kind=ik)                    :: lgt_id, neighbor_lgt_id, neighbor_rank, hvy_id
     ! type of data bounds
@@ -67,7 +67,7 @@ subroutine check_redundant_nodes_clean( params, lgt_block, hvy_block, hvy_neighb
 
     ! the (module-global) communication_counter is the number of neighboring relations
     ! this rank has with all other ranks (it is thus an array of number_procs)
-    communication_counter(1:N_friends) = 0_ik
+    communication_counter(1:N_friends, 1) = 0_ik
     ! the friends-relation is updated in every call to this routine.
     ! in the beginning all slots are free
     N_friends_used = 0
@@ -83,10 +83,10 @@ subroutine check_redundant_nodes_clean( params, lgt_block, hvy_block, hvy_neighb
     ! ATTENTION: if you change something here, recall to do the same in reallocate_buffers
     ! new, freshly allocated "friends" slots require consistent initialization
     ! reset integer send buffer position
-    int_pos = 2
+    int_pos(:,1) = 2
     ! reset first in send buffer position
-    int_send_buffer( 1, : ) = 0
-    int_send_buffer( 2, : ) = -99
+    int_send_buffer( 1, :, 1 ) = 0
+    int_send_buffer( 2, :, 1 ) = -99
 
 
     do k = 1, hvy_n
@@ -115,7 +115,7 @@ subroutine check_redundant_nodes_clean( params, lgt_block, hvy_block, hvy_neighb
                     ! different level
                     !-----------------------------------------------------------
                     ! interpoliere daten
-                    call restrict_predict_data( params, res_pre_data, data_bounds, neighborhood, level_diff, data_bounds_type, hvy_block, hvy_active(k))
+                    call restrict_predict_data( params, res_pre_data, data_bounds, neighborhood, level_diff, hvy_block, hvy_active(k))
 
                     ! 3: restrict-predict
                     data_bounds2 = ijkGhosts(1:2, 1:3, neighborhood, level_diff, data_bounds_type, 3)
@@ -128,11 +128,11 @@ subroutine check_redundant_nodes_clean( params, lgt_block, hvy_block, hvy_neighb
                 call get_friend_id_for_mpirank( params, neighbor_rank, id_Friend )
 
                 ! first: fill com matrix, count number of communication to neighboring process, needed for int buffer length
-                communication_counter(id_Friend) = communication_counter(id_Friend) + 1
+                communication_counter(id_Friend, 1) = communication_counter(id_Friend, 1) + 1
                 ! active block send data to its neighbor block
                 ! fill int/real buffer
                 call AppendLineToBuffer( int_send_buffer, real_send_buffer, buffer_size, id_Friend, line_buffer, &
-                hvy_id, neighborhood, level_diff )
+                hvy_id, neighborhood, level_diff, 1 )
 
             end if
         end do
@@ -144,19 +144,20 @@ subroutine check_redundant_nodes_clean( params, lgt_block, hvy_block, hvy_neighb
     ! pretend that no communication with myself takes place, in order to skip the
     ! MPI transfer in the following routine. NOTE: you can also skip this step and just have isend_irecv_data_2
     ! transfer the data, in which case you should skip the copy part directly after isend_irecv_data_2
-    communication_counter( mpirank2friend(myrank+1) ) = 0
+    communication_counter( mpirank2friend(myrank+1), 1 ) = 0
 
     ! send/receive data
-    call isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_receive_buffer, real_receive_buffer, communication_counter  )
+    call isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_receive_buffer, real_receive_buffer, &
+    communication_counter, 1 )
 
     ! copy internal buffer (BAD! Performance penalty!)
-    int_receive_buffer( 1:int_pos(mpirank2friend(myrank+1)), mpirank2friend(myrank+1) ) = &
-    int_send_buffer( 1:int_pos(mpirank2friend(myrank+1)), mpirank2friend(myrank+1) )
-    real_receive_buffer( 1:int_receive_buffer(1,mpirank2friend(myrank+1)), mpirank2friend(myrank+1) ) = &
-    real_send_buffer( 1:int_receive_buffer(1,mpirank2friend(myrank+1)), mpirank2friend(myrank+1) )
+    int_receive_buffer( 1:int_pos(mpirank2friend(myrank+1),1), mpirank2friend(myrank+1), 1 ) = &
+    int_send_buffer( 1:int_pos(mpirank2friend(myrank+1),1), mpirank2friend(myrank+1), 1 )
+    real_receive_buffer( 1:int_receive_buffer(1,mpirank2friend(myrank+1),1), mpirank2friend(myrank+1), 1 ) = &
+    real_send_buffer( 1:int_receive_buffer(1,mpirank2friend(myrank+1),1), mpirank2friend(myrank+1), 1 )
 
     ! change communication_counter, equired to trigger buffer unpacking in last step
-    communication_counter(mpirank2friend(myrank+1)) = 1
+    communication_counter(mpirank2friend(myrank+1),1) = 1
 
     !***********************************************************************
     ! Unpack received data and compare with ghost nodes data
@@ -164,18 +165,18 @@ subroutine check_redundant_nodes_clean( params, lgt_block, hvy_block, hvy_neighb
     ! sortiere den real buffer ein
     ! loop over all friends
     do k = 1, N_friends_used
-        if ( communication_counter(k) /= 0 ) then
+        if ( communication_counter(k,1) /= 0 ) then
             ! first element in int buffer is real buffer size
             l = 2
             ! -99 marks end of data
-            do while ( int_receive_buffer(l, k) /= -99 )
+            do while ( int_receive_buffer(l, k, 1) /= -99 )
 
-                hvy_id          = int_receive_buffer(l, k)
-                neighborhood    = int_receive_buffer(l+1, k)
-                level_diff      = int_receive_buffer(l+2, k)
-                buffer_position = int_receive_buffer(l+3, k)
-                buffer_size     = int_receive_buffer(l+4, k)
-                line_buffer(1:buffer_size) = real_receive_buffer( buffer_position : buffer_position-1 + buffer_size, k )
+                hvy_id          = int_receive_buffer(l, k,1)
+                neighborhood    = int_receive_buffer(l+1, k,1)
+                level_diff      = int_receive_buffer(l+2, k,1)
+                buffer_position = int_receive_buffer(l+3, k,1)
+                buffer_size     = int_receive_buffer(l+4, k,1)
+                line_buffer(1:buffer_size) = real_receive_buffer( buffer_position : buffer_position-1 + buffer_size, k, 1 )
 
                 ! data bounds (2-recv)
                 data_bounds = ijkGhosts(:,:, neighborhood, level_diff, data_bounds_type, 2)
@@ -215,33 +216,23 @@ subroutine synchronize_ghosts_generic_sequence( params, lgt_block, hvy_block, hv
     integer(kind=ik), intent(in)        :: hvy_n
 
     ! MPI parameter
-    integer(kind=ik)   :: myrank, mpisize, irank
+    integer(kind=ik)   :: myrank, mpisize
     ! grid parameter
     integer(kind=ik)   :: Bs, g, NdF
     ! loop variables
-    integer(kind=ik)   :: N, k, dF, neighborhood, invert_neighborhood, level_diff, l, levelsToSortIn
-    ! merged information of level diff and an indicator that we have a historic finer sender
-    integer(kind=ik)   :: level_diff_indicator
+    integer(kind=ik)   :: N, k, neighborhood, level_diff
     ! id integers
     integer(kind=ik)   :: neighbor_lgt_id, neighbor_rank, hvy_id_receiver
     integer(kind=ik)   :: sender_hvy_id, sender_lgt_id
-    ! data buffer size
-    integer(kind=ik)  :: buffer_size, buffer_position, data_bounds(1:2,1:3)
 
     integer(kind=ik)  :: hvyId_temp   ! just for a  consistency check
-    integer(kind=ik)  :: entrySortInRound , currentSortInRound
-    integer(kind=ik)  :: ijk1(2,3), ijk2(2,3)
+    integer(kind=ik)  :: entrySortInRound , currentSortInRound, entrySortInRound_end, iround
 
     ! Note each mpirank usually communicates only with a subset of all existing mpiranks.
     ! such a patner is called "friend"
     integer(kind=ik)  :: id_Friend
 
-    integer :: bounds_type
-    logical :: senderHistoricFine, recieverHistoricFine, receiverIsCoarser
-    logical :: receiverIsOnSameLevel, lgtIdSenderIsHigher
-
-!---------------------------------------------------------------------------------------------
-! variables initialization
+    integer(kind=ik) :: bounds_type, istage, istage_buffer(1:4), rounds(1:4)
 
     if (.not. ghost_nodes_module_ready) then
         ! in order to keep the syntax clean, buffers are module-global and need to be
@@ -259,27 +250,6 @@ subroutine synchronize_ghosts_generic_sequence( params, lgt_block, hvy_block, hv
     myrank  = params%rank
     mpisize = params%number_procs
 
-    ! the (module-global) communication_counter is the number of neighboring relations
-    ! this rank has with all other ranks (it is thus an array of mpisize)
-    communication_counter(1:N_friends) = 0_ik
-    ! the friends-relation is updated in every call to this routine.
-    ! in the beginning all slots are free
-    N_friends_used = 0
-    mpirank2friend(1:mpisize) = -100
-    friend2mpirank(1:N_friends) = -100
-
-!---------------------------------------------------------------------------------------------
-! main body
-
-    ! ATTENTION: if you change something here, recall to do the same in reallocate_buffers
-    ! new, freshly allocated "friends" slots require consistent initialization
-    ! reset integer send buffer position
-    int_pos = 2       ! TODO JR why 2? , the first filed contains the size of the XXX
-    ! reset first in send buffer position
-    int_send_buffer( 1, : ) = 0
-    int_send_buffer( 2, : ) = -99
-
-
     ! debug check if hvy_active is sorted
     if (hvy_n>1) then
         hvyId_temp =  hvy_active(1)
@@ -292,362 +262,544 @@ subroutine synchronize_ghosts_generic_sequence( params, lgt_block, hvy_block, hv
     end if
 
 
-    ! loop over active heavy data. NOTE: hvy_id has a linear correspondance to lgt_id,
-    ! i.e.g the ordering in hvy_id and lgt_id is the same. this is very important for the
-    ! secondary rule, which is that larger lgt_id wins. this works only if I treat the blocks
-    ! in INCREASING lgt_id ordering.
-    do k = 1, hvy_n
-        ! calculate light id
-        sender_hvy_id = hvy_active(k)
-        call hvy_id_to_lgt_id( sender_lgt_id, hvy_active(k), myrank, N )
+    ! Stage I: send the data for entrySortInRound= 2,3,4 and effectively do the rounds 2,3,4
+    !          afterwards, the ghost nodes on coarser block, including the redundant nodes, should be fine
+    ! Stage II: send the data for entrySortInRound = 1 (interpolation) and do the complete sort in again 1,2,3,4
+    !           the data for rouns 2,3,4 is not changed, so it is taken from the buffer for the first stage.
+    do istage = 1, 2
+        !***************************************************************************
+        ! (i) stage initialization
+        !***************************************************************************
 
-        ! loop over all neighbors
-        do neighborhood = 1, size(hvy_neighbor, 2)
-            ! neighbor exists
-            if ( hvy_neighbor( hvy_active(k), neighborhood ) /= -1 ) then
+        ! the (module-global) communication_counter is the number of neighboring relations
+        ! this rank has with all other ranks (it is thus an array of mpisize)
+        communication_counter(1:N_friends, istage) = 0_ik
+        ! the friends-relation is updated in every call to this routine.
+        ! in the beginning all slots are free
+        N_friends_used = 0
+        mpirank2friend(1:mpisize) = -100
+        friend2mpirank(1:N_friends) = -100
 
-                !  ----------------------------  determin the core ids and properties of neighbor  ------------------------------
-                ! TODO: check if info available when searching neighbor and store it in hvy_neighbor
-                ! neighbor light data id
-                neighbor_lgt_id = hvy_neighbor( hvy_active(k), neighborhood )
-                ! calculate neighbor rank
-                call lgt_id_to_proc_rank( neighbor_rank, neighbor_lgt_id, N )
-                ! neighbor heavy id
-                call lgt_id_to_hvy_id( hvy_id_receiver, neighbor_lgt_id, neighbor_rank, N )
-                ! define level difference: sender - receiver, so +1 means sender on higher level
-                level_diff = lgt_block( sender_lgt_id, params%max_treelevel+1 ) - lgt_block( neighbor_lgt_id, params%max_treelevel+1 )
+        ! ATTENTION: if you change something here, recall to do the same in reallocate_buffers
+        ! new, freshly allocated "friends" slots require consistent initialization
+        ! reset integer send buffer position
+        int_pos(:, istage) = 2       ! TODO JR why 2? , the first filed contains the size of the XXX
+        ! reset first in send buffer position
+        int_send_buffer( 1 ,: ,istage) = 0
+        int_send_buffer( 2 ,: ,istage) = -99
 
-                !  ----------------------------  here decide which values are taken for redundant nodes --------------------------------
+        !***************************************************************************
+        ! (ii) prepare data for sending
+        !***************************************************************************
 
-                ! here is the core of the ghost point rules
-                ! primary criterion: (very fine/historic fine) wins over (fine) wins over (same) wins over (coarse)
-                ! secondary criterion: the higher light id wins NOTE: this is an IMPLICIT rule, enforced by loop ordering ONLY.
+        ! loop over active heavy data. NOTE: hvy_id has a linear correspondance to lgt_id,
+        ! i.e.g the ordering in hvy_id and lgt_id is the same. this is very important for the
+        ! secondary rule, which is that larger lgt_id wins. this works only if I treat the blocks
+        ! in INCREASING lgt_id ordering.
+        do k = 1, hvy_n
+            ! calculate light id
+            sender_hvy_id = hvy_active(k)
+            call hvy_id_to_lgt_id( sender_lgt_id, sender_hvy_id, myrank, N )
 
-                ! comment: the same dominance rules within the ghos nodes are realized by the sequence of filling in the values,
-                ! first coarse then same then finer, always in the sequence of the hvy id the redundant nodes within the ghost nodes and maybe in the
-                ! redundant nodes are written several time, the one folling the above rules should win
+            ! loop over all neighbors
+            do neighborhood = 1, size(hvy_neighbor, 2)
+                ! neighbor exists
+                if ( hvy_neighbor( sender_hvy_id, neighborhood ) /= -1 ) then
 
-                ! the criteria
-                senderHistoricFine      = ( lgt_block( sender_lgt_id, params%max_treelevel+2)==11 )
-                recieverHistoricFine    = ( lgt_block(neighbor_lgt_id, params%max_treelevel+2)==11 )
-                receiverIsCoarser       = ( level_diff>0_ik )
-!                receiverIsCoarser       = ( level_diff<0_ik )
-                receiverIsOnSameLevel   = ( level_diff==0_ik )
-                lgtIdSenderIsHigher     = ( neighbor_lgt_id < sender_lgt_id )
+                    !  ----------------------------  determin the core ids and properties of neighbor  ------------------------------
+                    ! TODO: check if info available when searching neighbor and store it in hvy_neighbor
+                    ! neighbor light data id
+                    neighbor_lgt_id = hvy_neighbor( sender_hvy_id, neighborhood )
+                    ! calculate neighbor rank
+                    call lgt_id_to_proc_rank( neighbor_rank, neighbor_lgt_id, N )
+                    ! neighbor heavy id
+                    call lgt_id_to_hvy_id( hvy_id_receiver, neighbor_lgt_id, neighbor_rank, N )
+                    ! define level difference: sender - receiver, so +1 means sender on higher level
+                    level_diff = lgt_block( sender_lgt_id, params%max_treelevel+1 ) - lgt_block( neighbor_lgt_id, params%max_treelevel+1 )
 
-                bounds_type = exclude_redundant  ! default value, may be changed below
-                ! in what round in the extraction process will this neighborhood be unpacked?
-                entrySortInRound = level_diff + 2  ! now has values 1,2,3 ; is overwritten with 4 if sender is historic fine
+                    call get_friend_id_for_mpirank( params, neighbor_rank, id_Friend )
 
-                ! here we decide who dominates. would be simple without the historic fine
-                if (senderHistoricFine) then
-                    ! the 4th unpack round is the last one, so setting 4 ensures that historic fine always wins
-                    entrySortInRound = 4
-                    if (recieverHistoricFine) then
-                        if (lgtIdSenderIsHigher)  then
-                            ! both are historic fine, the redundant nodes are overwritten using secondary criterion
-                            bounds_type = include_redundant
-                        end if
+                    !  ----------------------------  here decide which values are taken for redundant nodes --------------------------------
+
+                    ! here is the core of the ghost point rules
+                    ! primary criterion: (very fine/historic fine) wins over (fine) wins over (same) wins over (coarse)
+                    ! secondary criterion: the higher light id wins NOTE: this is an IMPLICIT rule, enforced by loop ordering ONLY.
+
+                    ! comment: the same dominance rules within the ghos nodes are realized by the sequence of filling in the values,
+                    ! first coarse then same then finer, always in the sequence of the hvy id the redundant nodes within the ghost nodes and maybe in the
+                    ! redundant nodes are written several time, the one folling the above rules should win
+                    call set_bounds_according_to_ghost_dominance_rules( params, bounds_type, entrySortInRound, &
+                         lgt_block, sender_lgt_id, neighbor_lgt_id )
+
+                    if ( istage == 1 ) then
+                        if ( entrySortInRound == 1 ) Then
+                            ! this block just receives data in this neighborhood relation, but does not send anything
+                            communication_counter(id_Friend, istage) = communication_counter(id_Friend, istage) + 1
+                            cycle
+                        endif
                     else
-                        ! receiver not historic fine, so sender always sends redundant nodes, no further
-                        ! checks on refinement level are required
-                        bounds_type = include_redundant
-                    end if
+                        ! in stage two leveldiff +1 and 0 are already done
+                        if ( level_diff == 0 ) cycle
+                        if ( level_diff == +1 ) Then
+                            ! this block just receives data in this neighborhood relation, but does not send anything
+                            communication_counter(id_Friend, istage) = communication_counter(id_Friend, istage) + 1
+                            cycle
+                        endif
+                    endif
 
-                else  ! sender NOT historic fine,
+                    !----------------------------  pack describing data and node values to send ---------------------------
+                    if ( myrank == neighbor_rank ) then
+                        !-----------------------------------------------------------
+                        ! internal relation (no communication)
+                        !-----------------------------------------------------------
+                        call send_prepare_internal_neighbor( id_Friend, istage, sender_hvy_id, hvy_id_receiver, neighborhood, &
+                            bounds_type, level_diff, entrySortInRound )
 
-                    ! what about the neighbor/receiver, historic fine?
-                    if ( .not. recieverHistoricFine) then
-                        ! neither one is historic fine, so just do the basic rules
+                    else
+                        !-----------------------------------------------------------
+                        ! external relation (MPI communication)
+                        !-----------------------------------------------------------
+                        call send_prepare_external_neighbor( params, id_Friend, istage, hvy_block, communication_counter, &
+                             sender_hvy_id, hvy_id_receiver, neighborhood, bounds_type, level_diff, entrySortInRound )
 
-                        ! first rule, overwrite cosarser ghost nodes
-                        if (receiverIsCoarser)  then ! receiver is coarser
-                            bounds_type = include_redundant
-                        end if
-
-                        ! secondary rule: on same level decide using light id
-                        if (receiverIsOnSameLevel.and.lgtIdSenderIsHigher) then
-                            bounds_type = include_redundant
-                        end if
-                    end if
-                end if  ! else  senderHistoricFine
+                    end if ! (myrank==neighbor_rank)
+                end if ! neighbor exists
+            end do ! loop over all possible  neighbors
+        end do ! loop over all heavy active
 
 
+        !***************************************************************************
+        ! (iii) transfer part (send/recv)
+        !***************************************************************************
 
-                call get_friend_id_for_mpirank( params, neighbor_rank, id_Friend )
+        call isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_receive_buffer, real_receive_buffer, &
+        communication_counter, istage )
 
-                !----------------------------  pack describing data and node values to send ---------------------------
-                if ( myrank == neighbor_rank ) then
-                    !-----------------------------------------------------------
-                    ! internal relation (no communication)
-                    !-----------------------------------------------------------
-                    ! pack multipe information into one number
-                    level_diff_indicator =  4096*sender_hvy_id + 256*bounds_type + 16*(level_diff+1) + entrySortInRound
 
-                    ! the packing has limitations: if the numbers are too large, it might fail, so check here. TODO
-                    if (sender_hvy_id.ne.( level_diff_indicator/4096 ) )           call abort(1212,'Packing went wrong: wrong sender_hvy_id !')
-                    if (modulo( level_diff_indicator/16  , 16 ) .ne. level_diff+1) call abort(1213,'Packing went wrong: wrong leveldiff !')
-                    if (modulo( level_diff_indicator/256 , 16 ) .ne. bounds_type)  call abort(1214,'Packing went wrong: wrong boundstype !')
-                    if (modulo( level_diff_indicator, 16 ) .ne. entrySortInRound)  call abort(1215,'Packing went wrong: wrong entrySortInRound !')
+        !***************************************************************************
+        ! (iv) Unpack received data in the ghost node layers
+        !***************************************************************************
 
-                    ! we sort of abuse the routine AppendLineToBuffer here. In fact, we only store the integer data
-                    ! but do not copy the heavy data to te corresponding buffer. In that sense, we only "recall" what
-                    ! parameters (level_diff, entrySortInRound etc) the neighboring relation has.
-                    call AppendLineToBuffer( int_send_buffer, real_send_buffer, 0, id_Friend, line_buffer, &
-                    hvy_id_receiver, neighborhood, level_diff_indicator )
+        ! sort data in, ordering is important to keep dominance rules within ghost nodes.
+        ! the redundant nodes owned by two blocks only should be taken care by bounds_type (include_redundant. exclude_redundant )
+
+        if (istage == 1) Then
+            entrySortInRound_end = 3
+            ! We will perform these unpack rounds in the current stage, in this order...
+            rounds = (/2, 3, 4, 0/)
+            ! ... and take the date from those buffers
+            istage_buffer = (/1, 1, 1, 0/)
+        else
+            entrySortInRound_end = 4
+            ! We will perform these unpack rounds in the current stage, in this order...
+            rounds = (/1, 2, 3, 4/)
+            ! ... and take the date from those buffers
+            istage_buffer = (/2, 1, 1, 1/)
+        endif
+
+        do iround = 1,  entrySortInRound_end ! rounds depend on stages, see above
+            currentSortInRound = rounds(iround)
+
+            ! why now looping over mpiranks and not friends? The reason is the secondary rule,
+            ! according to which the larger lgt_id wins. this works only if I treat the blocks
+            ! in INCREASING lgt_id ordering. The lgt_id ordering is the same as MPIRANK ordering.
+            ! Thus be careful to treat ranks in increasing order, not randomized
+            do k = 1, mpisize
+                id_Friend = mpirank2friend(k)
+
+                ! skip mpiranks which are not my friends
+                if (id_Friend<0) cycle
+
+                if (friend2mpirank(id_Friend) == myrank+1) then
+                    !---------------------------------------------------------------
+                    ! process-internal ghost points (direct copy)
+                    !---------------------------------------------------------------
+                    call unpack_all_ghostlayers_currentRound_internal_neighbor( params, id_Friend, istage_buffer(iround), &
+                        currentSortInRound, hvy_block )
 
                 else
-                    !-----------------------------------------------------------
-                    ! external relation (MPI communication)
-                    !-----------------------------------------------------------
-                    ! count the number of communications with this fried. from that number, the
-                    ! integer buffer length can be computed while MPI exchanging data
-                    communication_counter(id_Friend) = communication_counter(id_Friend) + 1
+                    !---------------------------------------------------------------
+                    ! process-external ghost points (copy from buffer)
+                    !---------------------------------------------------------------
+                    call unpack_all_ghostlayers_currentRound_external_neighbor( params, id_Friend, istage_buffer(iround), &
+                        currentSortInRound, hvy_block, communication_counter )
 
-                    ! pack multipe information into one number
-                    level_diff_indicator = 256*bounds_type + 16*(level_diff+1) + entrySortInRound
+                end if  ! process-internal or external ghost points
+            end do ! mpisize
+        end do ! currentSortInRound
+    end do ! loop over stages 1,2
+end subroutine synchronize_ghosts_generic_sequence
 
-                    ! HACK HACK HACK HACK HACK
-                    ! we always send INCLUDE_REDUNDANT, but possibly sort in EXCLUDE_REDUNDANT
-                    ! (if thats in "bounds_type" which is packed above into "level_diff_indicator")
-                    bounds_type = include_redundant
-                    ! HACK HACK HACK HACK HACK
+!############################################################################################################
 
 
-                    ! NOTE: the indices of ghost nodes data chunks are stored globally in the ijkGhosts array (see module_MPI).
-                    ! They depend on the neighbor-relation, level difference and the bounds type.
-                    ! The last index is 1-sender 2-receiver 3-restricted/predicted.
-                    if ( level_diff == 0 ) then
+subroutine set_bounds_according_to_ghost_dominance_rules( params, bounds_type, entrySortInRound, &
+    lgt_block, sender_lgt_id, neighbor_lgt_id )
+    implicit none
+    !> user defined parameter structure
+    type (type_params), intent(in)      :: params
+    !> output of this function
+    integer(kind=ik), intent(out)       :: bounds_type, entrySortInRound
+    !> light data array
+    integer(kind=ik), intent(in)        :: lgt_block(:, :)
+    integer(kind=ik), intent(in)        :: sender_lgt_id, neighbor_lgt_id
 
-                        ! simply copy the ghost node layer (no interpolation or restriction here) to a line buffer, which
-                        ! we will send to our neighbor mpirank
-                        ijk1 = ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 1)
+    integer(kind=ik)                    :: level_diff
+    logical :: senderHistoricFine, recieverHistoricFine, receiverIsCoarser
+    logical :: receiverIsOnSameLevel, lgtIdSenderIsHigher
 
-                        call GhostLayer2Line( params, line_buffer, buffer_size, &
-                        hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_active(k)) )
+    ! define level difference: sender - receiver, so +1 means sender on higher level
+    level_diff = lgt_block( sender_lgt_id, params%max_treelevel+1 ) - lgt_block( neighbor_lgt_id, params%max_treelevel+1 )
 
-                    else
-                        ! up/downsample data first, then flatten to 1D buffer
-                        call restrict_predict_data( params, res_pre_data, ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 1), &
-                        neighborhood, level_diff, bounds_type, hvy_block, hvy_active(k) )
+    ! the criteria
+    senderHistoricFine      = ( lgt_block( sender_lgt_id, params%max_treelevel+2)==11 )
+    recieverHistoricFine    = ( lgt_block(neighbor_lgt_id, params%max_treelevel+2)==11 )
+    receiverIsCoarser       = ( level_diff>0_ik )
+    receiverIsOnSameLevel   = ( level_diff==0_ik )
+    lgtIdSenderIsHigher     = ( neighbor_lgt_id < sender_lgt_id )
 
-                        ijk1 = ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 3)
+    bounds_type = EXCLUDE_REDUNDANT  ! default value, may be changed below
+    ! in what round in the extraction process will this neighborhood be unpacked?
+    entrySortInRound = level_diff + 2  ! now has values 1,2,3 ; is overwritten with 4 if sender is historic fine
 
-                        call GhostLayer2Line( params, line_buffer, buffer_size, &
-                        res_pre_data( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :) )
-                    end if
+! if (entrySortInRound == 2) entrySortInRound=1
 
-                    ! the chunk of data is added to the MPI buffers (preparation for sending)
-                    call AppendLineToBuffer( int_send_buffer, real_send_buffer, buffer_size, id_Friend, line_buffer, &
-                    hvy_id_receiver, neighborhood, level_diff_indicator )
+    ! here we decide who dominates. would be simple without the historic fine
+    if (senderHistoricFine) then
+        ! the 4th unpack round is the last one, so setting 4 ensures that historic fine always wins
+        entrySortInRound = 4
+        if (recieverHistoricFine) then
+            if (lgtIdSenderIsHigher)  then
+                ! both are historic fine, the redundant nodes are overwritten using secondary criterion
+                bounds_type = INCLUDE_REDUNDANT
+            end if
+        else
+            ! receiver not historic fine, so sender always sends redundant nodes, no further
+            ! checks on refinement level are required
+            bounds_type = INCLUDE_REDUNDANT
+        end if
 
-                end if ! (myrank==neighbor_rank)
+    else  ! sender NOT historic fine,
 
-            end if ! neighbor exists
-        end do ! loop over all possible  neighbors
-    end do ! loop over all heavy active
+        ! what about the neighbor/receiver, historic fine?
+        if ( .not. recieverHistoricFine) then
+            ! neither one is historic fine, so just do the basic rules
+
+            ! first rule, overwrite cosarser ghost nodes
+            if (receiverIsCoarser)  then ! receiver is coarser
+                bounds_type = INCLUDE_REDUNDANT
+            end if
+
+            ! secondary rule: on same level decide using light id
+            if (receiverIsOnSameLevel.and.lgtIdSenderIsHigher) then
+                bounds_type = INCLUDE_REDUNDANT
+            end if
+        end if
+    end if  ! else  senderHistoricFine
+
+end subroutine
 
 
-    !***********************************************************************
-    ! transfer part (send/recv)
-    !***********************************************************************
-    ! send/receive data
-    ! note: todo, remove dummy subroutine
-    ! note: new dummy subroutine sets receive buffer position accordingly to process myrank
-    ! note: todo: use more than non-blocking send/receive
-    call isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_receive_buffer, real_receive_buffer, communication_counter )
+subroutine send_prepare_internal_neighbor( id_Friend, istage, sender_hvy_id, hvy_id_receiver, neighborhood, &
+    bounds_type, level_diff, entrySortInRound )
+    implicit none
+
+    integer(kind=ik), intent(in)   :: id_Friend, istage
+    integer(kind=ik), intent(in)   :: sender_hvy_id, hvy_id_receiver
+    integer(kind=ik), intent(in)   :: neighborhood, bounds_type
+    integer(kind=ik), intent(in)   :: level_diff
+    integer(kind=ik), intent(in)   :: entrySortInRound
+
+    ! merged information of level diff and an indicator that we have a historic finer sender
+    integer(kind=ik)   :: level_diff_indicator
+
+    !-----------------------------------------------------------
+    ! internal relation (no communication)
+    !-----------------------------------------------------------
+    ! pack multipe information into one number
+    level_diff_indicator =  4096*sender_hvy_id + 256*bounds_type + 16*(level_diff+1) + entrySortInRound
+
+    ! the packing has limitations: if the numbers are too large, it might fail, so check here. TODO
+    if (sender_hvy_id.ne.( level_diff_indicator/4096 ) )           call abort(1212,'Packing went wrong: wrong sender_hvy_id !')
+    if (modulo( level_diff_indicator/16  , 16 ) .ne. level_diff+1) call abort(1213,'Packing went wrong: wrong leveldiff !')
+    if (modulo( level_diff_indicator/256 , 16 ) .ne. bounds_type)  call abort(1214,'Packing went wrong: wrong boundstype !')
+    if (modulo( level_diff_indicator, 16 ) .ne. entrySortInRound)  call abort(1215,'Packing went wrong: wrong entrySortInRound !')
+
+    ! we sort of abuse the routine AppendLineToBuffer here. In fact, we only store the integer data
+    ! but do not copy the heavy data to te corresponding buffer. In that sense, we only "recall" what
+    ! parameters (level_diff, entrySortInRound etc) the neighboring relation has.
+    call AppendLineToBuffer( int_send_buffer, real_send_buffer, 0, id_Friend, line_buffer, &
+    hvy_id_receiver, neighborhood, level_diff_indicator, istage )
+
+end subroutine
 
 
-    !***********************************************************************
-    ! Unpack received data in the ghost node layers
-    !***********************************************************************
-    ! sort data in, ordering is important to keep dominance rules within ghost nodes.
-    ! the redundand nodes owend by two blocks only should be taken care by bounds_type (include_redundant. exclude_redundant )
-    do currentSortInRound = 1, 4 ! coarse, same, fine, historic fine
-        ! why now looping over mpiranks and not friends? The reason is the secondary rule,
-        ! according to which the larger lgt_id wins. this works only if I treat the blocks
-        ! in INCREASING lgt_id ordering. The lgt_id ordering is the same as MPIRANK ordering.
-        ! Thus be careful to treat ranks in increasing order, not randomized
-        do k = 1, mpisize
-            id_Friend = mpirank2friend(k)
 
-            ! skip procs which are not my friends
-            if (id_Friend<0) cycle
 
-            irank = friend2mpirank(id_Friend)
-            if (irank == myrank+1) then
+subroutine send_prepare_external_neighbor( params, id_Friend, istage, hvy_block, communication_counter, sender_hvy_id, &
+    hvy_id_receiver, neighborhood, bounds_type, level_diff, entrySortInRound )
+    implicit none
 
-                !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                ! process-internal ghost points (direct copy)
-                !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                l = 2  ! first field is size of data
-                do while ( int_send_buffer(l, id_Friend) /= -99 )
-                    ! unpack the description of the next data chunk
-                    ! required info:  sender_hvy_id, hvy_id_receiver, neighborhood, level_diff, bounds_type, entrySortInRound
-                    hvy_id_receiver = int_send_buffer(l, id_Friend)
-                    neighborhood = int_send_buffer(l+1, id_Friend)
+    !> user defined parameter structure
+    type (type_params), intent(in)      :: params
+    integer(kind=ik), intent(in)   :: id_Friend, istage
+    integer(kind=ik), intent(in)   :: sender_hvy_id, hvy_id_receiver
+    integer(kind=ik), intent(in)   :: neighborhood
+    integer(kind=ik), intent(inout):: bounds_type
+    integer(kind=ik), intent(in)   :: level_diff
+    integer(kind=ik), intent(in)   :: entrySortInRound
+    integer(kind=ik), intent(inout) :: communication_counter(:,:)
+    !> heavy data array - block data
+    real(kind=rk), intent(inout)    :: hvy_block(:, :, :, :, :)
 
-                    ! unpack & evaluate level_diff_indicator (contains multiple information, unpack it)
-                    level_diff_indicator = int_send_buffer(l+2, id_Friend)
-                    entrySortInRound = modulo( level_diff_indicator, 16 )
+    ! merged information of level diff and an indicator that we have a historic finer sender
+    integer(kind=ik)   :: level_diff_indicator, buffer_size
+    integer(kind=ik)   :: ijk1(2,3)
 
-                    ! check if this entry is processed in this round, otherwise cycle to next
-                    if (entrySortInRound /= currentSortInRound) then
-                        l = l + 5  ! to read the next entry
-                        cycle      ! go on to next entry
-                    end if
+    ! count the number of communications with this friend. from that number, the
+    ! integer buffer length can be computed while MPI exchanging data
+    communication_counter(id_Friend, istage) = communication_counter(id_Friend, istage) + 1
 
-                    level_diff      = modulo( level_diff_indicator/16  , 16 ) - 1_ik
-                    bounds_type     = modulo( level_diff_indicator/256 , 16 )
-                    sender_hvy_id   =       ( level_diff_indicator/4096 )
+    ! pack multipe information into one number
+    level_diff_indicator = 256*bounds_type + 16*(level_diff+1) + entrySortInRound
 
-                    if ( level_diff == 0 ) then
-                        ! simply copy from sender block to receiver block (NOTE: both are on the same MPIRANK)
-                        ! NOTE: the indices of ghost nodes data chunks are stored globally in the ijkGhosts array (see module_MPI).
-                        ! They depend on the neighbor-relation, level difference, and the bounds type.
-                        ! The last index is 1-sender 2-receiver 3-restricted/predicted.
+    ! we always send INCLUDE_REDUNDANT, but possibly sort in EXCLUDE_REDUNDANT
+    ! (if thats in "bounds_type" which is packed above into "level_diff_indicator")
+    bounds_type = INCLUDE_REDUNDANT
 
-                        if (bounds_type == exclude_redundant) then
-                            ! step (a) into a temporary block, extract the ONLY_REDUNDANT part
-                            ! step (b) patch the entire INCLUDE_REDUNDANT into the block
-                            ! step (c) put the data form step (a) back into the block.
+    ! NOTE: the indices of ghost nodes data chunks are stored globally in the ijkGhosts array (see module_MPI).
+    ! They depend on the neighbor-relation, level difference and the bounds type.
+    ! The last index is 1-sender 2-receiver 3-restricted/predicted.
+    if ( level_diff == 0 ) then
 
-                            ! ------- step (a) -------
-                            ijk1 = ijkGhosts(:,:, neighborhood, level_diff, ONLY_REDUNDANT, 2)
+        ! simply copy the ghost node layer (no interpolation or restriction here) to a line buffer, which
+        ! we will send to our neighbor mpirank
+        ijk1 = ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 1)
 
-                            tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :) = &
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2),ijk1(1,3):ijk1(2,3), :, hvy_id_receiver)
+        call GhostLayer2Line( params, line_buffer, buffer_size, &
+        hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, sender_hvy_id) )
 
-                            ! ------- step (b) -------
-                            ijk1 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 2)
-                            ijk2 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 1)
+    else
+        ! up/downsample data first, then flatten to 1D buffer
+        call restrict_predict_data( params, res_pre_data, ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 1), &
+        neighborhood, level_diff, hvy_block, sender_hvy_id )
 
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
-                            hvy_block( ijk2(1,1):ijk2(2,1), ijk2(1,2):ijk2(2,2), ijk2(1,3):ijk2(2,3), :, sender_hvy_id)
+        ijk1 = ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 3)
 
-                            ! ------- step (c) -------
-                            ijk1 = ijkGhosts(:,:, neighborhood, level_diff, ONLY_REDUNDANT, 2)
+        call GhostLayer2Line( params, line_buffer, buffer_size, &
+        res_pre_data( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :) )
+    end if
 
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
-                            tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :)
+    ! the chunk of data is added to the MPI buffers (preparation for sending)
+    call AppendLineToBuffer( int_send_buffer, real_send_buffer, buffer_size, id_Friend, line_buffer, &
+    hvy_id_receiver, neighborhood, level_diff_indicator, istage )
 
-                        else
-                            ! for INCLUDE_REDUNDANT, just copy the patch and be happy
-                            ijk1 = ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 2)
-                            ijk2 = ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 1)
 
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
-                            hvy_block( ijk2(1,1):ijk2(2,1), ijk2(1,2):ijk2(2,2), ijk2(1,3):ijk2(2,3), :, sender_hvy_id)
-                        endif
+end subroutine
 
-                    else  ! interpolation or restriction before inserting
-                        call restrict_predict_data( params, res_pre_data, ijkGhosts(1:2,1:3, neighborhood, level_diff, INCLUDE_REDUNDANT, 1), neighborhood, level_diff, &
-                        bounds_type, hvy_block, sender_hvy_id )
 
-                        ! copy interpolated / restricted data to ghost nodes layer
-                        ! NOTE: the indices of ghost nodes data chunks are stored globally in the ijkGhosts array (see module_MPI).
-                        ! They depend on the neighbor-relation, level difference and the bounds type.
-                        ! The last index is 1-sender 2-receiver 3-restricted/predicted.
-                        if (bounds_type == EXCLUDE_REDUNDANT) then
-                            ! ------- step (a) -------
-                            ijk1 = ijkGhosts(:,:, neighborhood, level_diff, ONLY_REDUNDANT, 2)
+subroutine unpack_all_ghostlayers_currentRound_external_neighbor( params, id_Friend, istage_buffer, &
+    currentSortInRound, hvy_block, communication_counter )
+    implicit none
 
-                            tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :) = &
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver)
+    !> user defined parameter structure
+    type (type_params), intent(in)      :: params
+    integer(kind=ik), intent(in)        :: id_Friend, istage_buffer
+    integer(kind=ik), intent(in)        :: currentSortInRound
+    !> heavy data array - block data
+    real(kind=rk), intent(inout)        :: hvy_block(:, :, :, :, :)
+    integer(kind=ik), intent(inout) :: communication_counter(:,:)
 
-                            ! ------- step (b) -------
-                            ijk1 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 2)
-                            ijk2 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 3)
+    integer(kind=ik) :: l, hvy_id_receiver, neighborhood, level_diff_indicator, entrySortInRound
+    integer(kind=ik) :: level_diff, bounds_type, buffer_position, buffer_size
+    integer(kind=ik) :: ijk1(2,3)
 
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
-                            res_pre_data( ijk2(1,1):ijk2(2,1), ijk2(1,2):ijk2(2,2), ijk2(1,3):ijk2(2,3), :)
+    ! did I recv something from this rank?
+    if ( (communication_counter(id_Friend, istage_buffer) /= 0) ) then
 
-                            ! ------- step (c) -------
-                            ijk1 = ijkGhosts(:,:, neighborhood, level_diff, ONLY_REDUNDANT, 2)
+        l = 2  ! first field is size of data
 
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
-                            tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :)
+        do while ( int_receive_buffer(l, id_Friend, istage_buffer) /= -99 )
+            ! unpack the description of the next data chunk
+            hvy_id_receiver = int_receive_buffer(l, id_Friend, istage_buffer)
+            neighborhood = int_receive_buffer(l+1, id_Friend, istage_buffer)
 
-                        else
-                            ijk1 = ijkGhosts(:, :, neighborhood, level_diff, INCLUDE_REDUNDANT, 2)
-                            ijk2 = ijkGhosts(:, :, neighborhood, level_diff, INCLUDE_REDUNDANT, 3)
+            ! unpack & evaluate level_diff_indicator (contains multiple information, unpack it)
+            level_diff_indicator = int_receive_buffer(l+2, id_Friend, istage_buffer)
+            entrySortInRound = modulo( level_diff_indicator, 16 )
 
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
-                            res_pre_data( ijk2(1,1):ijk2(2,1), ijk2(1,2):ijk2(2,2), ijk2(1,3):ijk2(2,3), :)
+            ! check if this entry is processed in this round, otherwise cycle to next
+            if (entrySortInRound /= currentSortInRound ) then
+                l = l + 5  ! to read the next entry
+                cycle      ! go on to next entry
+            end if
 
-                        endif
-                    end if
+            level_diff  = modulo( level_diff_indicator/16 , 16 ) - 1_ik
+            bounds_type = modulo( level_diff_indicator/256, 16 )
+            buffer_position = int_receive_buffer(l+3, id_Friend, istage_buffer)
+            buffer_size     = int_receive_buffer(l+4, id_Friend, istage_buffer)
 
-                    ! increase buffer postion marker
-                    l = l + 5
-                end do
+            ! copy data to line buffer. we now need to extract this to the ghost nodes layer (2D/3D)
+            line_buffer(1:buffer_size) = real_receive_buffer( buffer_position : buffer_position-1 + buffer_size, id_Friend, istage_buffer )
+
+            ! NOTE: the indices of ghost nodes data chunks are stored globally in the ijkGhosts array (see module_MPI).
+            ! They depend on the neighbor-relation, level difference and the bounds type.
+            ! The last index is 1-sender 2-receiver 3-restricted/predicted.
+
+            if ( bounds_type == EXCLUDE_REDUNDANT ) then
+
+                ! extract INCLUDE_REDUNDANT in tmp block
+                call Line2GhostLayer2( params, line_buffer, ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 2), tmp_block )
+                ! COPY ONLY_REDUNDANT from block
+                ijk1 = ijkGhosts( :, :, neighborhood, level_diff, ONLY_REDUNDANT, 2)
+
+                tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :) = &
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver)
+
+                ! copy everything to the block, INCLUDE_REDUNDANT
+                ijk1 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 2)
+
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
+                tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :)
 
             else
-
-                !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                ! process-external ghost points (copy from buffer)
-                !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                ! did I recv something from this rank?
-                if ( (communication_counter(id_Friend) /= 0) ) then
-                    l = 2  ! first field is size of data
-                    do while ( int_receive_buffer(l, id_Friend) /= -99 )
-                        ! unpack the description of the next data chunk
-                        hvy_id_receiver = int_receive_buffer(l, id_Friend)
-                        neighborhood = int_receive_buffer(l+1, id_Friend)
-
-                        ! unpack & evaluate level_diff_indicator (contains multiple information, unpack it)
-                        level_diff_indicator = int_receive_buffer(l+2, id_Friend)
-                        entrySortInRound = modulo( level_diff_indicator, 16 )
-
-                        ! check if this entry is processed in this round, otherwise cycle to next
-                        if (entrySortInRound /= currentSortInRound ) then
-                            l = l + 5  ! to read the next entry
-                            cycle      ! go on to next entry
-                        end if
-
-                        level_diff  = modulo( level_diff_indicator/16 , 16 ) - 1_ik
-                        bounds_type = modulo( level_diff_indicator/256, 16 )
-                        buffer_position = int_receive_buffer(l+3, id_Friend)
-                        buffer_size     = int_receive_buffer(l+4, id_Friend)
-
-                        ! copy data to line buffer. we now need to extract this to the ghost nodes layer (2D/3D)
-                        line_buffer(1:buffer_size) = real_receive_buffer( buffer_position : buffer_position-1 + buffer_size, id_Friend )
-
-                        ! NOTE: the indices of ghost nodes data chunks are stored globally in the ijkGhosts array (see module_MPI).
-                        ! They depend on the neighbor-relation, level difference and the bounds type.
-                        ! The last index is 1-sender 2-receiver 3-restricted/predicted.
-
-                        if ( bounds_type == EXCLUDE_REDUNDANT ) then
-
-                            ! extract INCLUDE_REDUNDANT in tmp block
-                            call Line2GhostLayer2( params, line_buffer, ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 2), tmp_block )
-                            ! COPY ONLY_REDUNDANT from block
-                            ijk1 = ijkGhosts( :, :, neighborhood, level_diff, ONLY_REDUNDANT, 2)
-
-                            tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :) = &
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver)
-
-                            ! copy everything to the block, INCLUDE_REDUNDANT
-                            ijk1 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 2)
-
-                            hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
-                            tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :)
-
-                        else
-                            ! for INCLUDE_REDUNDANT, just copy
-                             call Line2GhostLayer( params, line_buffer, ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 2), hvy_block, hvy_id_receiver )
-                        endif
+                ! for INCLUDE_REDUNDANT, just copy
+                 call Line2GhostLayer( params, line_buffer, ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 2), hvy_block, hvy_id_receiver )
+            endif
 
 
-                        ! increase buffer postion marker
-                        l = l + 5
-                    end do
-                end if
+            ! increase buffer postion marker
+            l = l + 5
+        end do
+    end if
 
-            end if  ! process-internal or external ghost points
-        end do ! mpisize
-    end do ! currentSortInRound
-end subroutine synchronize_ghosts_generic_sequence
+end subroutine
+
+subroutine unpack_all_ghostlayers_currentRound_internal_neighbor( params, id_Friend, istage_buffer, &
+    currentSortInRound, hvy_block )
+    implicit none
+
+    !> user defined parameter structure
+    type (type_params), intent(in)      :: params
+    integer(kind=ik), intent(in)        :: id_Friend, istage_buffer
+    integer(kind=ik), intent(in)        :: currentSortInRound
+    !> heavy data array - block data
+    real(kind=rk), intent(inout)        :: hvy_block(:, :, :, :, :)
+
+    integer(kind=ik) :: l, hvy_id_receiver, neighborhood, level_diff_indicator, entrySortInRound
+    integer(kind=ik) :: sender_hvy_id, level_diff, bounds_type
+    integer(kind=ik) :: ijk1(2,3), ijk2(2,3)
+
+
+
+    l = 2  ! first field is size of data
+    do while ( int_send_buffer(l, id_Friend, istage_buffer) /= -99 )
+        ! unpack the description of the next data chunk
+        ! required info:  sender_hvy_id, hvy_id_receiver, neighborhood, level_diff, bounds_type, entrySortInRound
+        hvy_id_receiver = int_send_buffer(l, id_Friend, istage_buffer)
+        neighborhood = int_send_buffer(l+1, id_Friend, istage_buffer)
+
+        ! unpack & evaluate level_diff_indicator (contains multiple information, unpack it)
+        level_diff_indicator = int_send_buffer(l+2, id_Friend, istage_buffer)
+        entrySortInRound = modulo( level_diff_indicator, 16 )
+
+        ! check if this entry is processed in this round, otherwise cycle to next
+        if (entrySortInRound /= currentSortInRound) then
+            l = l + 5  ! to read the next entry
+            cycle      ! go on to next entry
+        end if
+
+        level_diff      = modulo( level_diff_indicator/16  , 16 ) - 1_ik
+        bounds_type     = modulo( level_diff_indicator/256 , 16 )
+        sender_hvy_id   =       ( level_diff_indicator/4096 )
+
+        if ( level_diff == 0 ) then
+            ! simply copy from sender block to receiver block (NOTE: both are on the same MPIRANK)
+            ! NOTE: the indices of ghost nodes data chunks are stored globally in the ijkGhosts array (see module_MPI).
+            ! They depend on the neighbor-relation, level difference, and the bounds type.
+            ! The last index is 1-sender 2-receiver 3-restricted/predicted.
+
+            if (bounds_type == EXCLUDE_REDUNDANT) then
+                ! step (a) into a temporary block, extract the ONLY_REDUNDANT part
+                ! step (b) patch the entire INCLUDE_REDUNDANT into the block
+                ! step (c) put the data form step (a) back into the block.
+
+                ! ------- step (a) -------
+                ijk1 = ijkGhosts(:,:, neighborhood, level_diff, ONLY_REDUNDANT, 2)
+
+                tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :) = &
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2),ijk1(1,3):ijk1(2,3), :, hvy_id_receiver)
+
+                ! ------- step (b) -------
+                ijk1 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 2)
+                ijk2 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 1)
+
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
+                hvy_block( ijk2(1,1):ijk2(2,1), ijk2(1,2):ijk2(2,2), ijk2(1,3):ijk2(2,3), :, sender_hvy_id)
+
+                ! ------- step (c) -------
+                ijk1 = ijkGhosts(:,:, neighborhood, level_diff, ONLY_REDUNDANT, 2)
+
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
+                tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :)
+
+            else
+                ! for INCLUDE_REDUNDANT, just copy the patch and be happy
+                ijk1 = ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 2)
+                ijk2 = ijkGhosts(:,:, neighborhood, level_diff, bounds_type, 1)
+
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
+                hvy_block( ijk2(1,1):ijk2(2,1), ijk2(1,2):ijk2(2,2), ijk2(1,3):ijk2(2,3), :, sender_hvy_id)
+            endif
+
+        else  ! interpolation or restriction before inserting
+
+            call restrict_predict_data( params, res_pre_data, ijkGhosts(1:2,1:3, neighborhood, level_diff, INCLUDE_REDUNDANT, 1), &
+            neighborhood, level_diff, hvy_block, sender_hvy_id )
+
+            ! copy interpolated / restricted data to ghost nodes layer
+            ! NOTE: the indices of ghost nodes data chunks are stored globally in the ijkGhosts array (see module_MPI).
+            ! They depend on the neighbor-relation, level difference and the bounds type.
+            ! The last index is 1-sender 2-receiver 3-restricted/predicted.
+            if (bounds_type == EXCLUDE_REDUNDANT) then
+                ! step (a) into a temporary block, extract the ONLY_REDUNDANT part
+                ! step (b) patch the entire INCLUDE_REDUNDANT into the block
+                ! step (c) put the data from step (a) back into the block.
+                ! ------- step (a) -------
+                ijk1 = ijkGhosts(:,:, neighborhood, level_diff, ONLY_REDUNDANT, 2)
+
+                tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :) = &
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver)
+
+                ! ------- step (b) -------
+                ijk1 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 2)
+                ijk2 = ijkGhosts(:,:, neighborhood, level_diff, INCLUDE_REDUNDANT, 3)
+
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
+                res_pre_data( ijk2(1,1):ijk2(2,1), ijk2(1,2):ijk2(2,2), ijk2(1,3):ijk2(2,3), :)
+
+                ! ------- step (c) -------
+                ijk1 = ijkGhosts(:,:, neighborhood, level_diff, ONLY_REDUNDANT, 2)
+
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
+                tmp_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :)
+
+            else
+                ijk1 = ijkGhosts(:, :, neighborhood, level_diff, INCLUDE_REDUNDANT, 2)
+                ijk2 = ijkGhosts(:, :, neighborhood, level_diff, INCLUDE_REDUNDANT, 3)
+
+                hvy_block( ijk1(1,1):ijk1(2,1), ijk1(1,2):ijk1(2,2), ijk1(1,3):ijk1(2,3), :, hvy_id_receiver ) = &
+                res_pre_data( ijk2(1,1):ijk2(2,1), ijk2(1,2):ijk2(2,2), ijk2(1,3):ijk2(2,3), :)
+
+            endif
+        end if
+
+        ! increase buffer postion marker
+        l = l + 5
+    end do
+
+end subroutine
+
 
 !############################################################################################################
 
@@ -670,8 +822,7 @@ subroutine check_unique_origin(params, lgt_block, hvy_block, hvy_neighbor, hvy_a
 
     ! status of the check
     logical                             :: testOriginFlag
-    integer(kind=ik)                    :: hvy_id_k, iteration , lgt_id
-    real(kind=rk) :: tmp
+    integer(kind=ik)                    :: hvy_id_k, lgt_id
 
     integer(kind=ik)                    :: i1, i2, iStep, j1, j2, jStep, k1, k2, kStep  , i,j,k, boundaryIndex
     integer(kind=ik)                    :: Bs, g    , levelLocal , levelOrigin , lastRedundantOrigin
@@ -1139,7 +1290,8 @@ end subroutine compare_hvy_data
 
 !############################################################################################################
 
-subroutine isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_receive_buffer, real_receive_buffer, communication_counter )
+subroutine isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_receive_buffer, real_receive_buffer,&
+     communication_counter, istage )
 
 !---------------------------------------------------------------------------------------------
 ! modules
@@ -1153,12 +1305,13 @@ subroutine isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_re
     type (type_params), intent(in)      :: params
 
     !> send/receive buffer, integer and real
-    integer(kind=ik), intent(inout)       :: int_send_buffer(:,:)
-    integer(kind=ik), intent(inout)       :: int_receive_buffer(:,:)
-    real(kind=rk), intent(inout)          :: real_send_buffer(:,:)
-    real(kind=rk), intent(inout)          :: real_receive_buffer(:,:)
+    integer(kind=ik), intent(inout)       :: int_send_buffer(:,:,:)
+    integer(kind=ik), intent(inout)       :: int_receive_buffer(:,:,:)
+    real(kind=rk), intent(inout)          :: real_send_buffer(:,:,:)
+    real(kind=rk), intent(inout)          :: real_receive_buffer(:,:,:)
 
-    integer(kind=ik), intent(inout)       :: communication_counter(:)
+    integer(kind=ik), intent(inout)       :: communication_counter(:,:)
+    integer(kind=ik), intent(in) :: istage
 
     ! process rank
     integer(kind=ik)                    :: rank
@@ -1184,6 +1337,7 @@ subroutine isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_re
 
     rank = params%rank
 
+
 !---------------------------------------------------------------------------------------------
 ! main body
 
@@ -1199,23 +1353,23 @@ subroutine isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_re
     ! loop over com matrix
     do k = 1, N_friends_used
         ! communication between proc rank and proc k-1
-        if ( communication_counter(k) > 0 ) then
+        if ( communication_counter(k, istage) > 0 ) then
             mpirank_partner = friend2mpirank(k)-1 ! zero based
 
             ! length of integer buffer
-            int_length = 5*communication_counter(k) + 3
+            int_length = 5*communication_counter(k, istage) + 3
 
             ! increase communication counter
             i = i + 1
 
             ! send data
             tag = rank
-            call MPI_Isend( int_send_buffer(1, k), int_length, MPI_INTEGER4, &
+            call MPI_Isend( int_send_buffer(1, k, istage), int_length, MPI_INTEGER4, &
                  mpirank_partner, tag, WABBIT_COMM, send_request(i), ierr)
 
             ! receive data
             tag = mpirank_partner
-            call MPI_Irecv( int_receive_buffer(1, k), int_length, MPI_INTEGER4, &
+            call MPI_Irecv( int_receive_buffer(1, k, istage), int_length, MPI_INTEGER4, &
                  mpirank_partner, tag, WABBIT_COMM, recv_request(i), ierr)
         end if
 
@@ -1241,7 +1395,7 @@ subroutine isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_re
     ! loop over corresponding com matrix line
     do k = 1, N_friends_used
         ! communication between proc rank and proc k-1
-        if ( communication_counter(k) > 0 ) then
+        if ( communication_counter(k, istage) > 0 ) then
             mpirank_partner = friend2mpirank(k)-1 ! zero based
 
             ! increase communication counter
@@ -1249,20 +1403,20 @@ subroutine isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_re
 
             ! real buffer length is stored as the first entry in the integer buffer,
             ! hence we know how much data we'll receive
-            length_realBuffer = int_receive_buffer(1, k)
+            length_realBuffer = int_receive_buffer(1, k, istage)
 
             ! receive data
             tag = 1000*(friend2mpirank(k)-1)
-            call MPI_Irecv( real_receive_buffer(1:length_realBuffer, k), length_realBuffer, MPI_REAL8, &
+            call MPI_Irecv( real_receive_buffer(1:length_realBuffer, k, istage), length_realBuffer, MPI_REAL8, &
             mpirank_partner, MPI_ANY_TAG, WABBIT_COMM, recv_request(i), ierr)
 
             ! real buffer length is stored as the first entry in the integer buffer,
             ! hence we know how much data we'll receive
-            length_realBuffer = int_send_buffer(1, k)
+            length_realBuffer = int_send_buffer(1, k, istage)
 
             ! send data
             tag = 1000*rank
-            call MPI_Isend( real_send_buffer(1:length_realBuffer, k), length_realBuffer, MPI_REAL8, &
+            call MPI_Isend( real_send_buffer(1:length_realBuffer, k, istage), length_realBuffer, MPI_REAL8, &
             mpirank_partner, tag, WABBIT_COMM, send_request(i), ierr)
 
         end if
@@ -1401,15 +1555,15 @@ end subroutine set_synch_status
 !############################################################################################################
 
 subroutine AppendLineToBuffer( int_send_buffer, real_send_buffer, buffer_size, id_Friend, line_buffer, &
-    hvy_id, neighborhood, level_diff )
+    hvy_id, neighborhood, level_diff, istage )
 
     implicit none
 
     !> send buffers, integer and real
-    integer(kind=ik), intent(inout)        :: int_send_buffer(:,:)
-    real(kind=rk), intent(inout)           :: real_send_buffer(:,:)
+    integer(kind=ik), intent(inout)        :: int_send_buffer(:,:,:)
+    real(kind=rk), intent(inout)           :: real_send_buffer(:,:,:)
     ! data buffer size
-    integer(kind=ik), intent(in)           :: buffer_size
+    integer(kind=ik), intent(in)           :: buffer_size, istage
     ! id integer
     integer(kind=ik), intent(in)           :: id_Friend
     ! restricted/predicted data buffer
@@ -1422,27 +1576,27 @@ subroutine AppendLineToBuffer( int_send_buffer, real_send_buffer, buffer_size, i
 
     ! fill real buffer
     ! position in real buffer is stored in int buffer
-    buffer_position = int_send_buffer( 1, id_Friend ) + 1
+    buffer_position = int_send_buffer( 1, id_Friend, istage ) + 1
 
     ! real data
     if (buffer_size>0) then
-        real_send_buffer( buffer_position : buffer_position-1 + buffer_size, id_Friend ) = line_buffer(1:buffer_size)
+        real_send_buffer( buffer_position : buffer_position-1 + buffer_size, id_Friend, istage  ) = line_buffer(1:buffer_size)
     endif
 
     ! fill int buffer
     ! sum size of single buffers on first element
-    int_send_buffer(1  , id_Friend ) = int_send_buffer(1  , id_Friend ) + buffer_size
+    int_send_buffer(1  , id_Friend, istage ) = int_send_buffer(1  , id_Friend, istage ) + buffer_size
 
     ! save: neighbor id, neighborhood, level difference, buffer size
-    int_send_buffer( int_pos(id_Friend),   id_Friend ) = hvy_id
-    int_send_buffer( int_pos(id_Friend)+1, id_Friend ) = neighborhood
-    int_send_buffer( int_pos(id_Friend)+2, id_Friend ) = level_diff
-    int_send_buffer( int_pos(id_Friend)+3, id_Friend ) = buffer_position
-    int_send_buffer( int_pos(id_Friend)+4, id_Friend ) = buffer_size
+    int_send_buffer( int_pos(id_Friend, istage),   id_Friend, istage ) = hvy_id
+    int_send_buffer( int_pos(id_Friend, istage)+1, id_Friend, istage ) = neighborhood
+    int_send_buffer( int_pos(id_Friend, istage)+2, id_Friend, istage ) = level_diff
+    int_send_buffer( int_pos(id_Friend, istage)+3, id_Friend, istage ) = buffer_position
+    int_send_buffer( int_pos(id_Friend, istage)+4, id_Friend, istage ) = buffer_size
     ! mark end of buffer with -99, will be overwritten by next element if it is nt the last one
-    int_send_buffer( int_pos(id_Friend)+5, id_Friend ) = -99
+    int_send_buffer( int_pos(id_Friend, istage)+5, id_Friend, istage ) = -99
 
-    int_pos(id_Friend) = int_pos(id_Friend) +5
+    int_pos(id_Friend, istage) = int_pos(id_Friend, istage) +5
 end subroutine AppendLineToBuffer
 
 !############################################################################################################
@@ -1584,7 +1738,7 @@ subroutine check_redundant_nodes( params, lgt_block, hvy_block, hvy_neighbor, hv
     ! synch == .true. : active block sends data to neighboring block
     ! neighbor_synch == .true. : neighbor block send data to active block
     logical    :: synch, neighbor_synch, test2
-write(*,*) "warning you re calling the old routine. captain."
+! write(*,*) "warning you re calling the old routine. captain."
  !---------------------------------------------------------------------------------------------
 ! variables initialization
 
@@ -1632,7 +1786,7 @@ write(*,*) "warning you re calling the old routine. captain."
 
     ! the (module-global) communication_counter is the number of neighboring relations
     ! this rank has with all other ranks (it is thus an array of number_procs)
-    communication_counter(1:N_friends) = 0_ik
+    communication_counter(1:N_friends, 1) = 0_ik
     ! the friends-relation is updated in every call to this routine.
     ! in the beginning all slots are free
     N_friends_used = 0
@@ -1698,10 +1852,10 @@ write(*,*) "warning you re calling the old routine. captain."
         ! ATTENTION: if you change something here, recall to do the same in reallocate_buffers
         ! new, freshly allocated "friends" slots require consistent initialization
         ! reset integer send buffer position
-        int_pos = 2
+        int_pos(:,1) = 2
         ! reset first in send buffer position
-        int_send_buffer( 1, : ) = 0
-        int_send_buffer( 2, : ) = -99
+        int_send_buffer( 1, :, 1 ) = 0
+        int_send_buffer( 2, :, 1 ) = -99
 
         ! loop over active heavy data
         if (data_writing_type=="average") then
@@ -1772,7 +1926,7 @@ write(*,*) "warning you re calling the old routine. captain."
                         hvy_block( data_bounds(1,1):data_bounds(2,1), data_bounds(1,2):data_bounds(2,2), data_bounds(1,3):data_bounds(2,3), :, hvy_active(k)) )
                     else
                         ! interpoliere daten
-                        call restrict_predict_data( params, res_pre_data, data_bounds, neighborhood, level_diff, data_bounds_type, hvy_block, hvy_active(k))
+                        call restrict_predict_data( params, res_pre_data, data_bounds, neighborhood, level_diff, hvy_block, hvy_active(k))
 
                         data_bounds2 = ijkGhosts(1:2, 1:3, neighborhood, level_diff, data_bounds_type, 3)
                         ! lese daten, verwende interpolierte daten
@@ -1805,19 +1959,19 @@ write(*,*) "warning you re calling the old routine. captain."
                             neighborhood, lgt_block(lgt_id,params%max_treelevel+2), lgt_block(neighbor_lgt_id,params%max_treelevel+2)  )
                         end if
                         ! first: fill com matrix, count number of communication to neighboring process, needed for int buffer length
-                        communication_counter(id_Friend) = communication_counter(id_Friend) + 1
+                        communication_counter(id_Friend, 1) = communication_counter(id_Friend,1) + 1
 
                         if (synch) then
                             ! active block send data to his neighbor block
                             ! fill int/real buffer
                             call AppendLineToBuffer( int_send_buffer, real_send_buffer, buffer_size, id_Friend, line_buffer, &
-                            hvy_id, neighborhood, level_diff )
+                            hvy_id, neighborhood, level_diff, 1 )
                         else
                             ! neighbor block send data to active block
                             ! write -1 to int_send buffer, placeholder
-                            int_send_buffer( int_pos(id_Friend) : int_pos(id_Friend)+4  , id_Friend ) = -1
+                            int_send_buffer( int_pos(id_Friend, 1) : int_pos(id_Friend, 1)+4  , id_Friend, 1 ) = -1
                             ! increase int buffer position
-                            int_pos(id_Friend) = int_pos(id_Friend) + 5
+                            int_pos(id_Friend, 1) = int_pos(id_Friend, 1) + 5
                         end if
 
                     end if
@@ -1829,7 +1983,7 @@ write(*,*) "warning you re calling the old routine. captain."
         ! pretend that no communication with myself takes place, in order to skip the
         ! MPI transfer in the following routine. NOTE: you can also skip this step and just have isend_irecv_data_2
         ! transfer the data, in which case you should skip the copy part directly after isend_irecv_data_2
-        communication_counter( mpirank2friend(myrank+1) ) = 0
+        communication_counter( mpirank2friend(myrank+1), 1 ) = 0
 
         !***********************************************************************
         ! transfer part (send/recv)
@@ -1838,17 +1992,18 @@ write(*,*) "warning you re calling the old routine. captain."
         ! note: todo, remove dummy subroutine
         ! note: new dummy subroutine sets receive buffer position accordingly to process rank
         ! note: todo: use more than non-blocking send/receive
-        call isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_receive_buffer, real_receive_buffer, communication_counter  )
+        call isend_irecv_data_2( params, int_send_buffer, real_send_buffer, int_receive_buffer, real_receive_buffer, &
+        communication_counter, 1)
 
         ! fill receive buffer for internal neighbors for averaging writing type
         if ( (data_writing_type == 'average') .or. (data_writing_type == 'compare') .or. (data_writing_type == 'staging') ) then
             ! fill receive buffer
-            int_receive_buffer( 1:int_pos(mpirank2friend(myrank+1))  , mpirank2friend(myrank+1) ) = &
-                int_send_buffer( 1:int_pos(mpirank2friend(myrank+1))  , mpirank2friend(myrank+1) )
-            real_receive_buffer( 1:int_receive_buffer(1,mpirank2friend(myrank+1)), mpirank2friend(myrank+1) ) = &
-                real_send_buffer( 1:int_receive_buffer(1,mpirank2friend(myrank+1)), mpirank2friend(myrank+1) )
+            int_receive_buffer( 1:int_pos(mpirank2friend(myrank+1),1)  , mpirank2friend(myrank+1), 1 ) = &
+                int_send_buffer( 1:int_pos(mpirank2friend(myrank+1),1)  , mpirank2friend(myrank+1), 1 )
+            real_receive_buffer( 1:int_receive_buffer(1,mpirank2friend(myrank+1),1), mpirank2friend(myrank+1), 1 ) = &
+                real_send_buffer( 1:int_receive_buffer(1,mpirank2friend(myrank+1),1), mpirank2friend(myrank+1), 1 )
             ! change communication_counter, equired to trigger buffer unpacking in last step
-            communication_counter(mpirank2friend(myrank+1)) = 1
+            communication_counter(mpirank2friend(myrank+1), 1) = 1
         end if
 
         !***********************************************************************
@@ -1861,19 +2016,19 @@ write(*,*) "warning you re calling the old routine. captain."
             ! sortiere den real buffer ein
             ! loop over all procs
             do k = 1, N_friends_used
-                if ( communication_counter(k) /= 0 ) then
+                if ( communication_counter(k, 1) /= 0 ) then
                     ! neighboring proc
                     ! first element in int buffer is real buffer size
                     l = 2
                     ! -99 marks end of data
-                    do while ( int_receive_buffer(l, k) /= -99 )
+                    do while ( int_receive_buffer(l, k, 1) /= -99 )
 
-                        hvy_id          = int_receive_buffer(l, k)
-                        neighborhood    = int_receive_buffer(l+1, k)
-                        level_diff      = int_receive_buffer(l+2, k)
-                        buffer_position = int_receive_buffer(l+3, k)
-                        buffer_size     = int_receive_buffer(l+4, k)
-                        line_buffer(1:buffer_size) = real_receive_buffer( buffer_position : buffer_position-1 + buffer_size, k )
+                        hvy_id          = int_receive_buffer(l, k, 1)
+                        neighborhood    = int_receive_buffer(l+1, k, 1)
+                        level_diff      = int_receive_buffer(l+2, k, 1)
+                        buffer_position = int_receive_buffer(l+3, k, 1)
+                        buffer_size     = int_receive_buffer(l+4, k, 1)
+                        line_buffer(1:buffer_size) = real_receive_buffer( buffer_position : buffer_position-1 + buffer_size, k, 1 )
 
                         ! data bounds
                         !!!!!call calc_data_bounds( params, data_bounds, neighborhood, level_diff, data_bounds_type, 'receiver' )
@@ -1958,18 +2113,18 @@ write(*,*) "warning you re calling the old routine. captain."
 
                             ! -99 marks end of data
                             test2 = .false.
-                            do while ( int_receive_buffer(l, mpirank2friend(neighbor_rank+1)) /= -99 )
+                            do while ( int_receive_buffer(l, mpirank2friend(neighbor_rank+1), 1) /= -99 )
 
                                 ! proof heavy id and neighborhood id
-                                if (  (int_receive_buffer( l,   mpirank2friend(neighbor_rank+1) ) == hvy_active(k) ) &
-                                .and. (int_receive_buffer( l+1, mpirank2friend(neighbor_rank+1) ) == invert_neighborhood) ) then
+                                if (  (int_receive_buffer( l,   mpirank2friend(neighbor_rank+1), 1 ) == hvy_active(k) ) &
+                                .and. (int_receive_buffer( l+1, mpirank2friend(neighbor_rank+1), 1 ) == invert_neighborhood) ) then
 
                                     ! set parameter
                                     ! level diff, read from buffer because calculated level_diff is not sender-receiver
-                                    level_diff      = int_receive_buffer(l+2, mpirank2friend(neighbor_rank+1))
-                                    buffer_position = int_receive_buffer(l+3, mpirank2friend(neighbor_rank+1))
-                                    buffer_size     = int_receive_buffer(l+4, mpirank2friend(neighbor_rank+1))
-                                    line_buffer(1:buffer_size) = real_receive_buffer( buffer_position : buffer_position-1 + buffer_size, mpirank2friend(neighbor_rank+1) )
+                                    level_diff      = int_receive_buffer(l+2, mpirank2friend(neighbor_rank+1), 1)
+                                    buffer_position = int_receive_buffer(l+3, mpirank2friend(neighbor_rank+1), 1)
+                                    buffer_size     = int_receive_buffer(l+4, mpirank2friend(neighbor_rank+1), 1)
+                                    line_buffer(1:buffer_size) = real_receive_buffer( buffer_position : buffer_position-1 + buffer_size, mpirank2friend(neighbor_rank+1), 1 )
 
                                     ! data bounds
                                     !!!!!!!!!!!call calc_data_bounds( params, data_bounds, invert_neighborhood, level_diff, data_bounds_type, 'receiver' )

@@ -1,5 +1,5 @@
 subroutine restrict_predict_data( params, res_pre_data, data_bounds, neighborhood, &
-    level_diff, data_bounds_type, hvy_block, hvy_id )
+    level_diff, hvy_block, hvy_id )
 
     !---------------------------------------------------------------------------------------------
     ! modules
@@ -19,8 +19,6 @@ subroutine restrict_predict_data( params, res_pre_data, data_bounds, neighborhoo
     integer(kind=ik), intent(in)                    :: neighborhood
     !> difference between block levels
     integer(kind=ik), intent(in)                    :: level_diff
-    ! data_bounds_type
-    integer(kind=ik), intent(in)                    :: data_bounds_type
     !> heavy data array - block data
     real(kind=rk), intent(in)                       :: hvy_block(:, :, :, :, :)
     !> hvy id
@@ -65,7 +63,7 @@ subroutine restrict_predict_data( params, res_pre_data, data_bounds, neighborhoo
                 ! '_63/623', '_63/634', '_64/634', '_64/645', '_65/645', '_65/652', '_23/123', '_23/623', '_25/152', '_25/652',
                 ! '_43/134', '_43/634', '_45/145', '_45/645'
                 if ( level_diff == -1 ) then
-                    ! The neighbor is coarser: we have to interpolate the data
+                    ! The neighbor is finer: we have to interpolate the data
                     do dF = 1, NdF
                         ! interpolate data
                         call prediction_3D( hvy_block( data_bounds(1,1):data_bounds(2,1), &
@@ -75,7 +73,7 @@ subroutine restrict_predict_data( params, res_pre_data, data_bounds, neighborhoo
                     end do
 
                 elseif ( level_diff == 1) then
-                    ! The neighbor is finer: we have to downsample the data
+                    ! The neighbor is coarser: we have to downsample the data
                     do dF = 1, NdF
                         do i = data_bounds(1,1), data_bounds(2,1), 2
                             do j = data_bounds(1,2), data_bounds(2,2), 2
@@ -105,15 +103,15 @@ subroutine restrict_predict_data( params, res_pre_data, data_bounds, neighborhoo
             case(5,6,7,8)
                 ! '_NE' '_NW' '_SE' '_SW'
                 if ( level_diff == -1 ) then
-                    ! The neighbor is coarser: we have to interpolate the data
+                    ! The neighbor is finer: we have to interpolate the data
                     do dF = 1, NdF
                         ! interpolate data
                         call prediction_2D( hvy_block( data_bounds(1,1):data_bounds(2,1), data_bounds(1,2):data_bounds(2,2), 1, dF, hvy_id ), &
                         res_pre_data( 1:iN*2-1, 1:jN*2-1, 1, dF), params%order_predictor)
                     end do
 
-                elseif ( level_diff == 1) then
-                    ! The neighbor is finer: we have to downsample the data
+                elseif ( level_diff == +1) then
+                    ! The neighbor is coarser: we have to downsample the data
                     do dF = 1, NdF
                         do i = data_bounds(1,1), data_bounds(2,1), 2
                             do j = data_bounds(1,2), data_bounds(2,2), 2
@@ -129,7 +127,7 @@ subroutine restrict_predict_data( params, res_pre_data, data_bounds, neighborhoo
             case(9,10, 11,12, 13,14, 15,16)
                 ! 'NNE' 'NNW' 'SSE' 'SSW' ENE' 'ESE' 'WNW' 'WSW'
                 if ( level_diff == -1 ) then
-                    ! The neighbor is coarser: we have to interpolate the data
+                    ! The neighbor is finer: we have to interpolate the data
                     do dF = 1, NdF
                         ! interpolate data
                         call prediction_2D( hvy_block( data_bounds(1,1):data_bounds(2,1), data_bounds(1,2):data_bounds(2,2), 1, dF, hvy_id ), &
@@ -137,7 +135,7 @@ subroutine restrict_predict_data( params, res_pre_data, data_bounds, neighborhoo
                     end do
 
                 elseif ( level_diff == 1 ) then
-                    ! The neighbor is finer: we have to downsample the data
+                    ! The neighbor is coarser: we have to downsample the data
                     do dF = 1, NdF
                         do i = data_bounds(1,1), data_bounds(2,1), 2
                             do j = data_bounds(1,2), data_bounds(2,2), 2
