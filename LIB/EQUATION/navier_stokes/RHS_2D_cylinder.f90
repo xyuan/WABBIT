@@ -120,149 +120,149 @@ subroutine RHS_2D_cylinder( g, Bs, x0, dx, phi, rhs)
 !---------------------------------------------------------------------------------------------
 ! main bodx(2)
 
-    ! derivatives
-    call grad_zentral( Bs, g, dx(1), dx(2), u, u_x, u_y)
-    call grad_zentral( Bs, g, dx(1), dx(2), v, v_x, v_y)
-
-    call diff1x_zentral( Bs, g, dx(1), p, p_x)
-    call diff1y_zentral( Bs, g, dx(2), p, p_y)
-
-    ! RHS of equation of mass: J*srho*2 * srho_t = -div(rho*U_tilde)
-    call diff1x_zentral( Bs, g, dx(1), rho*u, dummy)
-    rhs(:,:,1) = -dummy
-    call diff1y_zentral( Bs, g, dx(2), rho*v, dummy)
-    rhs(:,:,1) = rhs(:,:,1) - dummy
-    rhs(:,:,1) = rhs(:,:,1) * 0.5_rk/phi(:,:,1)
-
-    ! friction
-    if (dissipation) then
-
-        ! Compute mu
-        T    = p / (rho*Rs) ! ideal gas
-        mu   = mu0
-        mu_d = 0.0_rk
-
-        ! thermal conductivity
-        lambda  = Cp * mu/Pr
-
-        ! tau11
-        tau11 = mu * 2.0_rk * u_x
-
-        !> \todo why not just simply div_U= u_x + v_y ?
-        call diff1x_zentral( Bs, g, dx(1), u, dummy)
-        div_U = dummy
-        call diff1y_zentral( Bs, g, dx(2), v, dummy)
-        div_U = div_U + dummy
-
-        tau11 = tau11 + ( mu_d - 2.0_rk/3.0_rk * mu ) * div_U
-
-        ! tau22
-        tau22 = mu * 2.0_rk * v_y
-        tau22 = tau22 + ( mu_d - 2.0_rk/3.0_rk * mu ) * div_U
-
-        ! tau33
-        tau33 = 0.0_rk
-        tau33 = tau33 + ( mu_d - 2.0_rk/3.0_rk * mu ) * div_U
-
-        ! tau12
-        tau12 = mu * ( v_x + u_y )
-
-        ! tau13
-        tau13 = 0.0_rk
-
-        ! tau23
-        tau23 = 0.0_rk
-
-        ! Friction terms for Momentum equation = div(tau_i*)/(J*srho)
-        call diff1x_zentral( Bs, g, dx(1), tau11, dummy)
-        fric_u = dummy
-        call diff1y_zentral( Bs, g, dx(2), tau12, dummy)
-        fric_u = fric_u + dummy
-
-        fric_u = fric_u / phi(:,:,1)
-
-        call diff1x_zentral( Bs, g, dx(1), tau12, dummy)
-        fric_v = dummy
-        call diff1y_zentral( Bs, g, dx(2), tau22, dummy)
-        fric_v = fric_v + dummy
-
-        fric_v = fric_v / phi(:,:,1)
-
-        ! Friction terms for the energy equation
-        ! Heat Flux
-        call grad_zentral( Bs, g, dx(1), dx(2), T, T_x, T_y)
-
-        fric_T1 = lambda * T_x
-        fric_T2 = lambda * T_y
-
-        ! All simple divergence terms for u_i*tau_ik and phi_k
-        call diff1x_zentral( Bs, g, dx(1), ( u*tau11 + v*tau12 + fric_T1 ), dummy)
-        fric_p = dummy
-        call diff1y_zentral( Bs, g, dx(2), ( u*tau12 + v*tau22 + fric_T2 ), dummy)
-        fric_p = fric_p + dummy
-
-        ! u_i*dx(1)_k (tau_ik) terms
-        call diff1x_zentral( Bs, g, dx(1), tau11, dummy)
-        fric_p = fric_p - u*dummy
-        call diff1y_zentral( Bs, g, dx(2), tau12, dummy)
-        fric_p = fric_p - u*dummy
-
-        call diff1x_zentral( Bs, g, dx(1), tau12, dummy)
-        fric_p = fric_p - v*dummy
-        call diff1y_zentral( Bs, g, dx(2), tau22, dummy)
-        fric_p = fric_p - v*dummy
-
-        fric_p = ( gamma_ - 1 ) * fric_p
-
-    else
-
-        fric_p = 0.0_rk
-        fric_u = 0.0_rk
-        fric_v = 0.0_rk
-
-    end if
-
-    ! RHS of energy equation:  p_t = -gamma*div(U_tilde p) + gamm1 *U x grad(p)
-    call diff1x_zentral( Bs, g, dx(1), (u * p), dummy)
-    rhs(:,:,4) = - dummy
-    call diff1y_zentral( Bs, g, dx(2), (v * p), dummy)
-    rhs(:,:,4) = rhs(:,:,4) - dummy
-
-    rhs(:,:,4) = rhs(:,:,4) * gamma_
-
-    rhs(:,:,4) = rhs(:,:,4) + (gamma_ - 1.0_rk) * (u*p_x + v*p_y)
-
-    rhs(:,:,4) = rhs(:,:,4) + fric_p
-
-    ! RHS of  momentum equation for u: sru_t = -1/2 * div(rho U_tilde u ) - 1/2 * (rho*U_tilde)*Du - Dp
-    call diff1x_zentral( Bs, g, dx(1), (u * rho * u), dummy)
-    rhs(:,:,2) = - 0.5_rk * dummy
-    call diff1y_zentral( Bs, g, dx(2), (v * rho * u), dummy)
-    rhs(:,:,2) = rhs(:,:,2) - 0.5_rk * dummy
-
-    rhs(:,:,2) = rhs(:,:,2) - 0.5_rk * rho * u * u_x
-    rhs(:,:,2) = rhs(:,:,2) - 0.5_rk * rho * v * u_y
-
-    rhs(:,:,2) = rhs(:,:,2) - p_x
-
-    rhs(:,:,2) = rhs(:,:,2) / phi(:,:,1)
-
-    rhs(:,:,2) = rhs(:,:,2) + fric_u
-
-    ! RHS of  momentum equation for v
-    call diff1x_zentral( Bs, g, dx(1), (u * rho * v), dummy)
-    rhs(:,:,3) = - 0.5_rk * dummy
-    call diff1y_zentral( Bs, g, dx(2), (v * rho * v), dummy)
-    rhs(:,:,3) = rhs(:,:,3) - 0.5_rk * dummy
-
-    rhs(:,:,3) = rhs(:,:,3) - 0.5_rk * rho * u * v_x
-    rhs(:,:,3) = rhs(:,:,3) - 0.5_rk * rho * v * v_y
-
-    rhs(:,:,3) = rhs(:,:,3) - p_y
-
-    rhs(:,:,3) = rhs(:,:,3) / phi(:,:,1)
-
-    rhs(:,:,3) = rhs(:,:,3) + fric_v
+    ! ! derivatives
+    ! call grad_zentral( Bs, g, dx(1), dx(2), u, u_x, u_y)
+    ! call grad_zentral( Bs, g, dx(1), dx(2), v, v_x, v_y)
+    !
+    ! call diff1x_zentral( Bs, g, dx(1), p, p_x)
+    ! call diff1y_zentral( Bs, g, dx(2), p, p_y)
+    !
+    ! ! RHS of equation of mass: J*srho*2 * srho_t = -div(rho*U_tilde)
+    ! call diff1x_zentral( Bs, g, dx(1), rho*u, dummy)
+    ! rhs(:,:,1) = -dummy
+    ! call diff1y_zentral( Bs, g, dx(2), rho*v, dummy)
+    ! rhs(:,:,1) = rhs(:,:,1) - dummy
+    ! rhs(:,:,1) = rhs(:,:,1) * 0.5_rk/phi(:,:,1)
+    !
+    ! ! friction
+    ! if (dissipation) then
+    !
+    !     ! Compute mu
+    !     T    = p / (rho*Rs) ! ideal gas
+    !     mu   = mu0
+    !     mu_d = 0.0_rk
+    !
+    !     ! thermal conductivity
+    !     lambda  = Cp * mu/Pr
+    !
+    !     ! tau11
+    !     tau11 = mu * 2.0_rk * u_x
+    !
+    !     !> \todo why not just simply div_U= u_x + v_y ?
+    !     call diff1x_zentral( Bs, g, dx(1), u, dummy)
+    !     div_U = dummy
+    !     call diff1y_zentral( Bs, g, dx(2), v, dummy)
+    !     div_U = div_U + dummy
+    !
+    !     tau11 = tau11 + ( mu_d - 2.0_rk/3.0_rk * mu ) * div_U
+    !
+    !     ! tau22
+    !     tau22 = mu * 2.0_rk * v_y
+    !     tau22 = tau22 + ( mu_d - 2.0_rk/3.0_rk * mu ) * div_U
+    !
+    !     ! tau33
+    !     tau33 = 0.0_rk
+    !     tau33 = tau33 + ( mu_d - 2.0_rk/3.0_rk * mu ) * div_U
+    !
+    !     ! tau12
+    !     tau12 = mu * ( v_x + u_y )
+    !
+    !     ! tau13
+    !     tau13 = 0.0_rk
+    !
+    !     ! tau23
+    !     tau23 = 0.0_rk
+    !
+    !     ! Friction terms for Momentum equation = div(tau_i*)/(J*srho)
+    !     call diff1x_zentral( Bs, g, dx(1), tau11, dummy)
+    !     fric_u = dummy
+    !     call diff1y_zentral( Bs, g, dx(2), tau12, dummy)
+    !     fric_u = fric_u + dummy
+    !
+    !     fric_u = fric_u / phi(:,:,1)
+    !
+    !     call diff1x_zentral( Bs, g, dx(1), tau12, dummy)
+    !     fric_v = dummy
+    !     call diff1y_zentral( Bs, g, dx(2), tau22, dummy)
+    !     fric_v = fric_v + dummy
+    !
+    !     fric_v = fric_v / phi(:,:,1)
+    !
+    !     ! Friction terms for the energy equation
+    !     ! Heat Flux
+    !     call grad_zentral( Bs, g, dx(1), dx(2), T, T_x, T_y)
+    !
+    !     fric_T1 = lambda * T_x
+    !     fric_T2 = lambda * T_y
+    !
+    !     ! All simple divergence terms for u_i*tau_ik and phi_k
+    !     call diff1x_zentral( Bs, g, dx(1), ( u*tau11 + v*tau12 + fric_T1 ), dummy)
+    !     fric_p = dummy
+    !     call diff1y_zentral( Bs, g, dx(2), ( u*tau12 + v*tau22 + fric_T2 ), dummy)
+    !     fric_p = fric_p + dummy
+    !
+    !     ! u_i*dx(1)_k (tau_ik) terms
+    !     call diff1x_zentral( Bs, g, dx(1), tau11, dummy)
+    !     fric_p = fric_p - u*dummy
+    !     call diff1y_zentral( Bs, g, dx(2), tau12, dummy)
+    !     fric_p = fric_p - u*dummy
+    !
+    !     call diff1x_zentral( Bs, g, dx(1), tau12, dummy)
+    !     fric_p = fric_p - v*dummy
+    !     call diff1y_zentral( Bs, g, dx(2), tau22, dummy)
+    !     fric_p = fric_p - v*dummy
+    !
+    !     fric_p = ( gamma_ - 1 ) * fric_p
+    !
+    ! else
+    !
+    !     fric_p = 0.0_rk
+    !     fric_u = 0.0_rk
+    !     fric_v = 0.0_rk
+    !
+    ! end if
+    !
+    ! ! RHS of energy equation:  p_t = -gamma*div(U_tilde p) + gamm1 *U x grad(p)
+    ! call diff1x_zentral( Bs, g, dx(1), (u * p), dummy)
+    ! rhs(:,:,4) = - dummy
+    ! call diff1y_zentral( Bs, g, dx(2), (v * p), dummy)
+    ! rhs(:,:,4) = rhs(:,:,4) - dummy
+    !
+    ! rhs(:,:,4) = rhs(:,:,4) * gamma_
+    !
+    ! rhs(:,:,4) = rhs(:,:,4) + (gamma_ - 1.0_rk) * (u*p_x + v*p_y)
+    !
+    ! rhs(:,:,4) = rhs(:,:,4) + fric_p
+    !
+    ! ! RHS of  momentum equation for u: sru_t = -1/2 * div(rho U_tilde u ) - 1/2 * (rho*U_tilde)*Du - Dp
+    ! call diff1x_zentral( Bs, g, dx(1), (u * rho * u), dummy)
+    ! rhs(:,:,2) = - 0.5_rk * dummy
+    ! call diff1y_zentral( Bs, g, dx(2), (v * rho * u), dummy)
+    ! rhs(:,:,2) = rhs(:,:,2) - 0.5_rk * dummy
+    !
+    ! rhs(:,:,2) = rhs(:,:,2) - 0.5_rk * rho * u * u_x
+    ! rhs(:,:,2) = rhs(:,:,2) - 0.5_rk * rho * v * u_y
+    !
+    ! rhs(:,:,2) = rhs(:,:,2) - p_x
+    !
+    ! rhs(:,:,2) = rhs(:,:,2) / phi(:,:,1)
+    !
+    ! rhs(:,:,2) = rhs(:,:,2) + fric_u
+    !
+    ! ! RHS of  momentum equation for v
+    ! call diff1x_zentral( Bs, g, dx(1), (u * rho * v), dummy)
+    ! rhs(:,:,3) = - 0.5_rk * dummy
+    ! call diff1y_zentral( Bs, g, dx(2), (v * rho * v), dummy)
+    ! rhs(:,:,3) = rhs(:,:,3) - 0.5_rk * dummy
+    !
+    ! rhs(:,:,3) = rhs(:,:,3) - 0.5_rk * rho * u * v_x
+    ! rhs(:,:,3) = rhs(:,:,3) - 0.5_rk * rho * v * v_y
+    !
+    ! rhs(:,:,3) = rhs(:,:,3) - p_y
+    !
+    ! rhs(:,:,3) = rhs(:,:,3) / phi(:,:,1)
+    !
+    ! rhs(:,:,3) = rhs(:,:,3) + fric_v
 
 
 end subroutine RHS_2D_cylinder
